@@ -295,13 +295,6 @@ delegate(document, '#registration_new_user,#new_user', 'submit', () => {
 });
 
 
-// delegate(document, '#web3-modal-connect','click', () => {
-//   if (getAccount().isConnected) {
-//     disconnect();
-//   } else {
-//     modal.open();
-//   }
-// });
 function main() {
   ready(loaded);
 }
