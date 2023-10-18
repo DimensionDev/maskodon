@@ -4,4 +4,4 @@ not IE 11
 not dead
 
 [development]
-supports es6-module
+chrome > 79

@@ -1,7 +1,6 @@
-import 'core-js/features/object/assign';
-import 'core-js/features/object/values';
-import 'core-js/features/symbol';
 import 'core-js/features/promise/finally';
+import 'core-js/es/math';
+
 import { decode as decodeBase64 } from '../utils/base64';
 
 if (!Object.hasOwn(HTMLCanvasElement.prototype, 'toBlob')) {
