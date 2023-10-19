@@ -486,9 +486,15 @@ class Status < ApplicationRecord
 
   def trigger_create_webhooks
     TriggerWebhookWorker.perform_async('status.created', 'Status', id) if local?
+
+    TriggerIpfsWorker.perform_async('status.created', 'Status', id) if local?
+    logger.debug("TriggerIpfsWorker ipfs create deal  end")
+
   end
 
   def trigger_update_webhooks
     TriggerWebhookWorker.perform_async('status.updated', 'Status', id) if local?
+    #TriggerIpfsWorker.perform_async('status.updated', 'Status', id) if local?
+    logger.debug("TriggerIpfsWorker ipfs update  deal  end")
   end
 end
