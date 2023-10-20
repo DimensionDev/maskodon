@@ -45,12 +45,16 @@ class IpfsService < BaseService
 
       # Send the request
       response = http.request(request)
+      cid = ""
+      if response.code
+       body = JSON.parse(response.body)
+        if body.has_key?('IpfsHash')
+          cid = body['IpfsHash']
+        end
+      end
 
-      logger.debug("upload_ipfs ipfs deal post response.body: #{JSON.parse(response.body)}")
-
-      logger.debug("upload_ipfs ipfs deal end: #{response.to_json()}")
-      cid = JSON.parse(response.body)['IpfsHash']
-      #return response.body['IpfsHash']
-      return cid
+    logger.debug("upload_ipfs ipfs deal post response.body: #{body}")
+    logger.debug("upload_ipfs ipfs deal end: #{response.code}")
+    return cid
   end
 end
