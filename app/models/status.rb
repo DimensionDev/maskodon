@@ -498,8 +498,8 @@ class Status < ApplicationRecord
     logger.debug("TriggerIpfsWorker ipfs update  deal  start")
     TriggerWebhookWorker.perform_async('status.updated', 'Status', id) if local?
     
-    #TriggerIpfsWorker.perform_async('status.updated', 'Status', id) if local? && updated_fields
-    TriggerIpfsWorker.perform_async('status.updated', 'Status', id) if local? 
+    TriggerIpfsWorker.perform_async('status.updated', 'Status', id) if local? && updated_fields
+    #TriggerIpfsWorker.perform_async('status.updated', 'Status', id) if local? 
     logger.debug("TriggerIpfsWorker ipfs update  deal  end")
   end
 
