@@ -5,7 +5,7 @@ class REST::MediaAttachmentSerializer < ActiveModel::Serializer
 
   attributes :id, :type, :url, :preview_url,
              :remote_url, :preview_remote_url, :text_url, :meta,
-             :description, :blurhash
+             :description, :blurhash, :file_cid
 
   def id
     object.id.to_s
@@ -13,11 +13,18 @@ class REST::MediaAttachmentSerializer < ActiveModel::Serializer
 
   def url
     if object.not_processed?
+      puts "44444444444444444"
       nil
     elsif object.needs_redownload?
+      puts "555555555555555555"
       media_proxy_url(object.id, :original)
     else
-      full_asset_url(object.file.url(:original))
+      puts "666666666666666666"
+      if object.file_cid
+        ipfs_url(object.file_cid)
+      else
+        full_asset_url(object.file.url(:original))
+      end
     end
   end
 
@@ -26,12 +33,20 @@ class REST::MediaAttachmentSerializer < ActiveModel::Serializer
   end
 
   def preview_url
+
     if object.needs_redownload?
+      puts "111111111111111111111"
       media_proxy_url(object.id, :small)
     elsif object.thumbnail.present?
+      puts "22222222222222222222222"
       full_asset_url(object.thumbnail.url(:original))
     elsif object.file.styles.key?(:small)
-      full_asset_url(object.file.url(:small))
+      puts "33333333333333333333333333"
+      if object.file_cid
+        ipfs_url(object.file_cid)
+      else
+        full_asset_url(object.file.url(:small))
+      end
     end
   end
 
@@ -45,5 +60,12 @@ class REST::MediaAttachmentSerializer < ActiveModel::Serializer
 
   def meta
     object.file.meta
+  end
+
+  def ipfs_url(file_cid)
+    puts "ipfs_url"
+    puts file_cid
+    ipfs_asset_url = "https://maskodon.mypinata.cloud/ipfs/#{file_cid}"
+    ipfs_asset_url
   end
 end

@@ -155,6 +155,11 @@ elsif ENV['AZURE_ENABLED'] == 'true'
       azure_host_alias: ENV['AZURE_ALIAS_HOST']
     )
   end
+elsif ENV['IPFS_ENABLED'] = 'true'
+  # require 'paperclip-storage-ipfs'
+  Paperclip::Attachment.default_options.merge!(
+    storage: :ipfs
+  )
 else
   Paperclip::Attachment.default_options.merge!(
     storage: :filesystem,
