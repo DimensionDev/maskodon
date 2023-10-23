@@ -10,7 +10,8 @@ class IpfsService < BaseService
     logger.debug("IpfsService ipfs  start")
     logger.debug("IpfsService ipfs  deal :#{object.to_json()} ")
     status_cid = upload_ipfs(object)
-    object.update(cid: status_cid)
+    #object.update(cid: status_cid)
+    object.update_column(:cid, status_cid)
     logger.debug("IpfsService ipfs  dealing :#{object.to_json()} ")
   end
 
