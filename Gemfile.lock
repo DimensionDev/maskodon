@@ -36,6 +36,11 @@ GIT
       nokogiri (~> 1.5)
       omniauth (>= 1.2, < 3)
 
+PATH
+  remote: localgem/paperclip-storage-ipfs
+  specs:
+    paperclip-storage-ipfs (0.1.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -910,6 +915,7 @@ DEPENDENCIES
   omniauth-saml (~> 2.0)
   omniauth_openid_connect (~> 0.6.1)
   ox (~> 2.14)
+  paperclip-storage-ipfs!
   parslet
   pg (~> 1.5)
   pghero

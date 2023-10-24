@@ -212,3 +212,4 @@ gem "sass-rails", "~> 6.0"
 gem "turbo-rails"
 
 gem "stimulus-rails"
+gem "paperclip-storage-ipfs", path: "./localgem/paperclip-storage-ipfs"
