@@ -2,6 +2,10 @@
 
 class Auth::RegistrationsController < Devise::RegistrationsController
   include RegistrationSpamConcern
+  #include RelyingParty
+ # include Devise::Passkeys::Controllers::RegistrationsControllerConcern
+
+
 
   layout :determine_layout
 
@@ -20,10 +24,87 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
   skip_before_action :require_functional!, only: [:edit, :update]
 
+  Password='asdf123456.'
   def new
     super(&:build_invite_request)
   end
 
+  def new_pksignup
+
+
+    logger.info("Params: #{params.inspect}")
+    email=params[:account][:username]+"@gmail.com"
+    user = User.new(email: email,password: Password,settings: params[:account][:username],public_key: params[:public_key])
+    user.account=Account.new(username: params[:account][:username])
+    create_options = WebAuthn::Credential.options_for_create(
+      user: {
+        name: params[:account][:username],
+        id: user.webauthn_id
+      },
+      authenticator_selection: { user_verification: 'required' },
+    )
+    save_registration('challenge' => create_options.challenge, 'user_attributes' => user.to_json)
+    if user.valid?
+      hash = {
+        original_url: "/auth/sign_in",
+        callback_url: new_auth_registration_callback_path,
+        create_options: create_options
+      }
+      respond_to do |format|
+        format.json { render json: hash }
+      end
+    else
+      respond_to do |format|
+        format.json { render json: { errors: user.errors.full_messages }, status: 200 }
+      end
+    end
+  end
+
+
+  def callback
+    logger.info("params: #{params}")
+    logger.info("saved_user_attribuets: #{saved_user_attribuets}")
+
+    webauthn_credential = WebAuthn::Credential.from_create(params)
+
+
+    user_hash = JSON.parse(saved_user_attribuets)
+    user_p = OpenStruct.new(user_hash)
+
+    account=Account.create!(username:user_p[:settings])
+
+    user = User.create!(email: user_p[:email],password:Password,account_id:account.id,public_key: user_p[:public_key])
+    begin
+      webauthn_credential.verify(saved_challenge, user_verification: true)
+      logger.debug { 'verify worked' }
+      credential = user.credentials.build(
+        external_id: external_id(webauthn_credential),
+        public_key: webauthn_credential.public_key,
+        sign_count: webauthn_credential.sign_count
+      )
+
+      if credential.save
+        logger.debug { 'save worked' }
+
+        render json: { status: 'ok' }, status: :ok
+      else
+        logger.debug { 'save failed' }
+        render json: 'Could not register your Security Key', status: 200
+      end
+    rescue WebAuthn::Error => e
+      logger.debug { "verify raised error: #{e}" }
+      render json: "Verification failed: #{e.message}", status: 200
+    rescue Exception => e
+      logger.debug { "Unexpected exception: #{e}" }
+      render json: "Verification failed: #{e.message}", status: 200
+    ensure
+      logger.debug { 'delete session' }
+      session.delete(:current_registration)
+    end
+  end
+  def external_id(webauthn_credential)
+    Base64.strict_encode64(webauthn_credential.raw_id)
+  end
   def update
     super do |resource|
       resource.clear_other_sessions(current_session.session_id) if resource.saved_change_to_encrypted_password?
@@ -43,6 +124,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
   end
 
   def build_resource(hash = nil)
+    logger.debug("Auth::RegistrationsController::build_resource")
     super(hash)
 
     resource.locale                 = I18n.locale
@@ -54,8 +136,12 @@ class Auth::RegistrationsController < Devise::RegistrationsController
   end
 
   def configure_sign_up_params
+    logger.debug("Auth::RegistrationsController::configure_sign_up_params")
+    # devise_parameter_sanitizer.permit(:sign_up) do |user_params|
+    #   user_params.permit({ account_attributes: [:username, :display_name], invite_request_attributes: [:text] }, :email, :password, :password_confirmation, :invite_code, :agreement, :website, :confirm_password)
+    # end
     devise_parameter_sanitizer.permit(:sign_up) do |user_params|
-      user_params.permit({ account_attributes: [:username, :display_name], invite_request_attributes: [:text] }, :email, :password, :password_confirmation, :invite_code, :agreement, :website, :confirm_password)
+        user_params.permit({ account_attributes: [:username, :display_name], invite_request_attributes: [:text] }, :email, :password, :invite_code, :website)
     end
   end
 
@@ -143,15 +229,46 @@ class Auth::RegistrationsController < Devise::RegistrationsController
   end
 
   def require_rules_acceptance!
+    logger.debug("Auth::RegistrationsController::require_rules_acceptance!::1")
     return if @rules.empty? || (session[:accept_token].present? && params[:accept] == session[:accept_token])
 
     @accept_token = session[:accept_token] = SecureRandom.hex
     @invite_code  = invite_code
 
+    logger.debug("Auth::RegistrationsController::require_rules_acceptance!::2")
     set_locale { render :rules }
   end
 
   def set_cache_headers
     response.cache_control.replace(private: true, no_store: true)
   end
+
+  def username_param
+    registration_params[:username]
+  end
+
+  def registration_params
+    params.require(:registration).permit(:username)
+  end
+
+  def saved_registration
+    session['current_registration']
+  end
+
+  def save_registration(v)
+    session['current_registration'] = v
+  end
+
+  def saved_user_attribuets
+    saved_registration['user_attributes']
+  end
+
+  def saved_username
+    saved_user_attribuets['username']
+  end
+
+  def saved_challenge
+    saved_registration['challenge']
+  end
+
 end

@@ -343,6 +343,17 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_20_035146) do
     t.index ["uri"], name: "index_conversations_on_uri", unique: true, opclass: :text_pattern_ops, where: "(uri IS NOT NULL)"
   end
 
+  create_table "credentials", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "external_id"
+    t.string "public_key"
+    t.bigint "sign_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["external_id"], name: "index_credentials_on_external_id", unique: true
+    t.index ["user_id"], name: "index_credentials_on_user_id"
+  end
+
   create_table "custom_emoji_categories", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", precision: nil, null: false
@@ -1104,6 +1115,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_20_035146) do
     t.bigint "role_id"
     t.text "settings"
     t.string "time_zone"
+    t.string "public_key"
     t.index ["account_id"], name: "index_users_on_account_id"
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["created_by_application_id"], name: "index_users_on_created_by_application_id", where: "(created_by_application_id IS NOT NULL)"

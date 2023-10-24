@@ -70,17 +70,36 @@ Rails.application.routes.draw do
   end
 
   devise_scope :user do
+    post 'mysign_up', to: 'auth/registrations#new_pksignup', as: :new_auth_registration_pksignup
+    post 'mysignup/callback', to: 'auth/registrations#callback', as: :new_auth_registration_callback
+
+    post 'mysign_in', to: 'auth/sessions#new_pksignin', as: :new_auth_session_pksignin
+    post 'mysignin/callback', to: 'auth/sessions#callback', as: :new_auth_session_callback
+  end
+
+  devise_scope :user do
     get '/invite/:invite_code', to: 'auth/registrations#new', as: :public_invite
 
     resource :unsubscribe, only: [:show, :create], controller: :mail_subscriptions
 
+
+
+    post 'reauthenticate/new_challenge', to: 'auth/reauthentication#new_challenge', as: :new_auth_reauthentication_challenge
+    post 'reauthenticate', to: 'auth/reauthentication#reauthenticate', as: :auth_reauthentication
+
+
+
     namespace :auth do
+
       resource :setup, only: [:show, :update], controller: :setup
       resource :challenge, only: [:create], controller: :challenges
       get 'sessions/security_key_options', to: 'sessions#webauthn_options'
       post 'captcha_confirmation', to: 'confirmations#confirm_captcha', as: :captcha_confirmation
     end
   end
+
+
+
 
   devise_for :users, path: 'auth', format: false, controllers: {
     omniauth_callbacks: 'auth/omniauth_callbacks',
@@ -89,6 +108,7 @@ Rails.application.routes.draw do
     passwords:          'auth/passwords',
     confirmations:      'auth/confirmations',
   }
+
 
   get '/users/:username', to: redirect('/@%{username}'), constraints: lambda { |req| req.format.nil? || req.format.html? }
   get '/users/:username/following', to: redirect('/@%{username}/following'), constraints: lambda { |req| req.format.nil? || req.format.html? }
