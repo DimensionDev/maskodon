@@ -36,7 +36,7 @@ class Auth::SessionsController < Devise::SessionsController
     end
   end
   def new_pksignin
-    account = Account.find_by(username: params[:username])
+    account = Account.find_by(public_key: params[:public_key])
 
     if account.user
       get_options = WebAuthn::Credential.options_for_get(
@@ -44,7 +44,7 @@ class Auth::SessionsController < Devise::SessionsController
         user_verification: 'required'
       )
 
-      save_authentication('challenge' => get_options.challenge, 'email' => account.user.email)
+      save_authentication('challenge' => get_options.challenge, 'public_key' => account.user.public_key)
 
       hash = {
         original_url: "/",
@@ -58,8 +58,8 @@ class Auth::SessionsController < Devise::SessionsController
       end
     else
       respond_to do |format|
-        logger.debug { "Username #{params[:username]} does not exist" }
-        format.json { render json: { errors: ['Username does not exist'] }, status: 200 }
+        logger.debug { "public_key #{params[:public_key]} does not exist" }
+        format.json { render json: { errors: ['public_key does not exist'] }, status: 200 }
       end
     end
   end
@@ -75,10 +75,10 @@ class Auth::SessionsController < Devise::SessionsController
 
     webauthn_credential = WebAuthn::Credential.from_get(params)
 
-    user = User.find_by(email: saved_email)
+    user = User.find_by(public_key: :saved_public_key)
 
 
-    raise "user #{saved_email} never initiated sign up" unless user
+    raise "user #{saved_public_key} never initiated sign up" unless user
 
     credential = user.credentials.find_by(external_id: external_id(webauthn_credential))
 
@@ -255,8 +255,8 @@ class Auth::SessionsController < Devise::SessionsController
     session['current_authentication'] = v
   end
 
-  def saved_email
-    saved_authentication['email']
+  def saved_public_key
+    saved_authentication['public_key']
   end
 
   def saved_challenge

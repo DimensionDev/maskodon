@@ -727,19 +727,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
     t.index ["key_id"], name: "index_one_time_keys_on_key_id"
   end
 
-  create_table "passkeys", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.string "label"
-    t.string "external_id"
-    t.string "public_key"
-    t.integer "sign_count"
-    t.datetime "last_used_at"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["external_id"], name: "index_passkeys_on_external_id", unique: true
-    t.index ["public_key"], name: "index_passkeys_on_public_key", unique: true
-    t.index ["user_id"], name: "index_passkeys_on_user_id"
-  end
 
   create_table "pghero_space_stats", force: :cascade do |t|
     t.text "database"
