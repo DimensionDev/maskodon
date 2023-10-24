@@ -22,6 +22,7 @@ Rails.application.config.assets.precompile += %w( conditional_mediation_availabl
 Rails.application.config.assets.precompile += %w( passkey_reauthentication_handler.js)
 Rails.application.config.assets.precompile += %w( session_form.js)
 Rails.application.config.assets.precompile += %w( credential.js)
+Rails.application.config.assets.precompile += %w( webauthn-json.browser-ponyfill.js)
 Rails.application.config.assets.precompile += %w( controllers/feature_detection_controller.js)
 Rails.application.config.assets.precompile += %w( controllers/new_registration_controller.js)
 Rails.application.config.assets.precompile += %w( controllers/new_session_controller.js)
