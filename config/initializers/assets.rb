@@ -15,12 +15,8 @@ Rails.application.config.assets.version = '1.0'
 
 Rails.application.config.assets.initialize_on_precompile = true
 
-Rails.application.config.assets.precompile += %w( registration_form.js )
 
 Rails.application.config.assets.precompile += %w( application.js)
-Rails.application.config.assets.precompile += %w( conditional_mediation_available.js )
-Rails.application.config.assets.precompile += %w( passkey_reauthentication_handler.js)
-Rails.application.config.assets.precompile += %w( session_form.js)
 Rails.application.config.assets.precompile += %w( credential.js)
 Rails.application.config.assets.precompile += %w( webauthn-json.browser-ponyfill.js)
 Rails.application.config.assets.precompile += %w( controllers/feature_detection_controller.js)

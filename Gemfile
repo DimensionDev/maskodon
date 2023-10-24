@@ -206,8 +206,6 @@ gem 'rubyzip', '~> 2.3'
 gem 'hcaptcha', '~> 7.1'
 
 
-gem "importmap-rails","1.2.1"
-gem "sass-rails", "~> 6.0"
 
 gem "turbo-rails"
 
