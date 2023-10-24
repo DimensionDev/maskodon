@@ -36,15 +36,15 @@ class Auth::SessionsController < Devise::SessionsController
     end
   end
   def new_pksignin
-    account = Account.find_by(public_key: params[:public_key])
+    user = User.find_by(public_key: params[:public_key])
 
-    if account.user
+    if user
       get_options = WebAuthn::Credential.options_for_get(
-        allow: account.user.credentials.pluck(:external_id),
+        allow: user.credentials.pluck(:external_id),
         user_verification: 'required'
       )
 
-      save_authentication('challenge' => get_options.challenge, 'public_key' => account.user.public_key)
+      save_authentication('challenge' => get_options.challenge, 'public_key' => user.public_key)
 
       hash = {
         original_url: "/",
@@ -75,7 +75,7 @@ class Auth::SessionsController < Devise::SessionsController
 
     webauthn_credential = WebAuthn::Credential.from_get(params)
 
-    user = User.find_by(public_key: :saved_public_key)
+    user = User.find_by(public_key: saved_public_key)
 
 
     raise "user #{saved_public_key} never initiated sign up" unless user
