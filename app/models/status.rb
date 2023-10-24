@@ -484,11 +484,38 @@ class Status < ApplicationRecord
     thread&.decrement_count!(:replies_count) if in_reply_to_id.present? && distributable?
   end
 
+
   def trigger_create_webhooks
+
+    logger.debug("TriggerIpfsWorker ipfs create deal  start")
     TriggerWebhookWorker.perform_async('status.created', 'Status', id) if local?
+
+    TriggerIpfsWorker.perform_async('status.created', 'Status', id) if local?
+    logger.debug("TriggerIpfsWorker ipfs create deal  end")
+
   end
 
   def trigger_update_webhooks
+    logger.debug("TriggerIpfsWorker ipfs update  deal  start")
     TriggerWebhookWorker.perform_async('status.updated', 'Status', id) if local?
+    
+    TriggerIpfsWorker.perform_async('status.updated', 'Status', id) if local? && updated_fields
+    #TriggerIpfsWorker.perform_async('status.updated', 'Status', id) if local? 
+    logger.debug("TriggerIpfsWorker ipfs update  deal  end")
   end
+
+
+ def updated_fields
+  #fields = self.changed
+  fields = self.previous_changes
+  logger.debug("updated_fields  ipfs cid  deal #{fields}")
+  logger.debug("updated_fields  ipfs cid  deal #{fields.include?('cid')}")
+  bl_cid = false
+  if fields.size()>0 && !fields.include?('cid')
+    bl_cid = true
+  end
+  logger.debug("updated_fields  ipfs cid  deal end #{bl_cid}")
+  return bl_cid
+ end
+
 end
