@@ -353,7 +353,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_07_150100) do
     t.index ["external_id"], name: "index_credentials_on_external_id", unique: true
     t.index ["user_id"], name: "index_credentials_on_user_id"
   end
-  
+
   create_table "custom_emoji_categories", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", precision: nil, null: false
