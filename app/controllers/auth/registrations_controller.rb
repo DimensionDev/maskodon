@@ -24,6 +24,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
   skip_before_action :require_functional!, only: [:edit, :update]
 
+  Password='asdf123456.'
   def new
     super(&:build_invite_request)
   end
@@ -33,7 +34,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
     logger.info("Params: #{params.inspect}")
     email=params[:account][:username]+"@gmail.com"
-    user = User.new(email: email,password: "asdf123456.",settings: params[:account][:username])
+    user = User.new(email: email,password: Password,settings: params[:account][:username])
     user.account=Account.new(username: params[:account][:username])
     create_options = WebAuthn::Credential.options_for_create(
       user: {
@@ -72,14 +73,8 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
     account=Account.create!(username:user_p[:settings])
 
-    # user = User.create!(email: user_p[:email],encrypted_password: 'asdasadaadsadsadwqqwe',password:"dddddd123456",account_id:account.id )
+    user = User.create!(email: user_p[:email],password:Password,account_id:account.id )
     begin
-      user=account.user.build(
-        email: user_p[:email],
-        password: "asadf123456"
-      )
-      user.save
-
       webauthn_credential.verify(saved_challenge, user_verification: true)
       logger.debug { 'verify worked' }
       credential = user.credentials.build(

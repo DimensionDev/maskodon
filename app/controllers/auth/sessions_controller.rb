@@ -37,15 +37,14 @@ class Auth::SessionsController < Devise::SessionsController
   end
   def new_pksignin
     account = Account.find_by(username: params[:username])
-    user=User.find_by(id:account.user_id)
 
-    if user
+    if account.user
       get_options = WebAuthn::Credential.options_for_get(
-        allow: user.credentials.pluck(:external_id),
+        allow: account.user.credentials.pluck(:external_id),
         user_verification: 'required'
       )
 
-      save_authentication('challenge' => get_options.challenge, 'email' => user.email)
+      save_authentication('challenge' => get_options.challenge, 'email' => account.user.email)
 
       hash = {
         original_url: "/",
@@ -85,7 +84,7 @@ class Auth::SessionsController < Devise::SessionsController
 
     begin
 
-      on_authentication_success(user, saved_email) unless @on_authentication_success_called
+      on_authentication_success(user, 'webauthn') unless @on_authentication_success_called
 
       webauthn_credential.verify(
         saved_challenge,
