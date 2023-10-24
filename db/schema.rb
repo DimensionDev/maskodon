@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
+ActiveRecord::Schema[7.0].define(version: 2023_09_07_150100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -153,11 +153,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
     t.string "url"
     t.string "avatar_file_name"
     t.string "avatar_content_type"
-    t.bigint "avatar_file_size"
+    t.integer "avatar_file_size"
     t.datetime "avatar_updated_at", precision: nil
     t.string "header_file_name"
     t.string "header_content_type"
-    t.bigint "header_file_size"
+    t.integer "header_file_size"
     t.datetime "header_updated_at", precision: nil
     t.string "avatar_remote_url"
     t.boolean "locked", default: false, null: false
@@ -181,8 +181,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
     t.integer "avatar_storage_schema_version"
     t.integer "header_storage_schema_version"
     t.string "devices_url"
-    t.datetime "sensitized_at", precision: nil
     t.integer "suspension_origin"
+    t.datetime "sensitized_at", precision: nil
     t.boolean "trendable"
     t.datetime "reviewed_at", precision: nil
     t.datetime "requested_review_at", precision: nil
@@ -366,7 +366,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
     t.string "domain"
     t.string "image_file_name"
     t.string "image_content_type"
-    t.bigint "image_file_size"
+    t.integer "image_file_size"
     t.datetime "image_updated_at", precision: nil
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -533,7 +533,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
     t.datetime "updated_at", precision: nil, null: false
     t.string "data_file_name"
     t.string "data_content_type"
-    t.bigint "data_file_size"
+    t.integer "data_file_size"
     t.datetime "data_updated_at", precision: nil
     t.bigint "account_id", null: false
     t.boolean "overwrite", default: false, null: false
@@ -554,12 +554,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
   end
 
   create_table "ip_blocks", force: :cascade do |t|
-    t.inet "ip", default: "0.0.0.0", null: false
-    t.integer "severity", default: 0, null: false
-    t.datetime "expires_at", precision: nil
-    t.text "comment", default: "", null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
+    t.datetime "expires_at", precision: nil
+    t.inet "ip", default: "0.0.0.0", null: false
+    t.integer "severity", default: 0, null: false
+    t.text "comment", default: "", null: false
     t.index ["ip"], name: "index_ip_blocks_on_ip", unique: true
   end
 
@@ -610,7 +610,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
     t.bigint "status_id"
     t.string "file_file_name"
     t.string "file_content_type"
-    t.bigint "file_file_size"
+    t.integer "file_file_size"
     t.datetime "file_updated_at", precision: nil
     t.string "remote_url", default: "", null: false
     t.datetime "created_at", precision: nil, null: false
@@ -626,8 +626,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
     t.integer "file_storage_schema_version"
     t.string "thumbnail_file_name"
     t.string "thumbnail_content_type"
-    t.bigint "thumbnail_file_size"
-    t.datetime "thumbnail_updated_at"
+    t.integer "thumbnail_file_size"
+    t.datetime "thumbnail_updated_at", precision: nil
     t.string "thumbnail_remote_url"
     t.index ["account_id", "status_id"], name: "index_media_attachments_on_account_id_and_status_id", order: { status_id: :desc }
     t.index ["scheduled_status_id"], name: "index_media_attachments_on_scheduled_status_id", where: "(scheduled_status_id IS NOT NULL)"
@@ -727,7 +727,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
     t.index ["key_id"], name: "index_one_time_keys_on_key_id"
   end
 
-
   create_table "pghero_space_stats", force: :cascade do |t|
     t.text "database"
     t.text "schema"
@@ -795,7 +794,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
     t.string "description", default: "", null: false
     t.string "image_file_name"
     t.string "image_content_type"
-    t.bigint "image_file_size"
+    t.integer "image_file_size"
     t.datetime "image_updated_at", precision: nil
     t.integer "type", default: 0, null: false
     t.text "html", default: "", null: false
@@ -907,7 +906,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
     t.string "var", default: "", null: false
     t.string "file_file_name"
     t.string "file_content_type"
-    t.bigint "file_file_size"
+    t.integer "file_file_size"
     t.datetime "file_updated_at", precision: nil
     t.json "meta"
     t.datetime "created_at", precision: nil, null: false
@@ -944,8 +943,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
   create_table "status_pins", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.bigint "status_id", null: false
-    t.datetime "created_at", precision: nil, default: -> { "CURRENT_TIMESTAMP" }, null: false
-    t.datetime "updated_at", precision: nil, default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "created_at", precision: nil, default: -> { "now()" }, null: false
+    t.datetime "updated_at", precision: nil, default: -> { "now()" }, null: false
     t.index ["account_id", "status_id"], name: "index_status_pins_on_account_id_and_status_id", unique: true
     t.index ["status_id"], name: "index_status_pins_on_status_id"
   end
@@ -1208,7 +1207,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
   add_foreign_key "canonical_email_blocks", "accounts", column: "reference_account_id", on_delete: :cascade
   add_foreign_key "conversation_mutes", "accounts", name: "fk_225b4212bb", on_delete: :cascade
   add_foreign_key "conversation_mutes", "conversations", on_delete: :cascade
-  add_foreign_key "credentials", "users", on_delete: :cascade
   add_foreign_key "custom_filter_keywords", "custom_filters", on_delete: :cascade
   add_foreign_key "custom_filter_statuses", "custom_filters", on_delete: :cascade
   add_foreign_key "custom_filter_statuses", "statuses", on_delete: :cascade
@@ -1293,99 +1291,99 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_24_040042) do
   add_foreign_key "webauthn_credentials", "users"
 
   create_view "instances", materialized: true, sql_definition: <<-SQL
-      WITH domain_counts(domain, accounts_count) AS (
-           SELECT accounts.domain,
-              count(*) AS accounts_count
-             FROM accounts
-            WHERE (accounts.domain IS NOT NULL)
-            GROUP BY accounts.domain
-          )
-   SELECT domain_counts.domain,
-      domain_counts.accounts_count
-     FROM domain_counts
-  UNION
-   SELECT domain_blocks.domain,
-      COALESCE(domain_counts.accounts_count, (0)::bigint) AS accounts_count
-     FROM (domain_blocks
-       LEFT JOIN domain_counts ON (((domain_counts.domain)::text = (domain_blocks.domain)::text)))
-  UNION
-   SELECT domain_allows.domain,
-      COALESCE(domain_counts.accounts_count, (0)::bigint) AS accounts_count
-     FROM (domain_allows
-       LEFT JOIN domain_counts ON (((domain_counts.domain)::text = (domain_allows.domain)::text)));
-  SQL
+        WITH domain_counts(domain, accounts_count) AS (
+             SELECT accounts.domain,
+                count(*) AS accounts_count
+               FROM accounts
+              WHERE (accounts.domain IS NOT NULL)
+              GROUP BY accounts.domain
+            )
+     SELECT domain_counts.domain,
+        domain_counts.accounts_count
+       FROM domain_counts
+    UNION
+     SELECT domain_blocks.domain,
+        COALESCE(domain_counts.accounts_count, (0)::bigint) AS accounts_count
+       FROM (domain_blocks
+         LEFT JOIN domain_counts ON (((domain_counts.domain)::text = (domain_blocks.domain)::text)))
+    UNION
+     SELECT domain_allows.domain,
+        COALESCE(domain_counts.accounts_count, (0)::bigint) AS accounts_count
+       FROM (domain_allows
+         LEFT JOIN domain_counts ON (((domain_counts.domain)::text = (domain_allows.domain)::text)));
+    SQL
   add_index "instances", "reverse(('.'::text || (domain)::text)), domain", name: "index_instances_on_reverse_domain"
   add_index "instances", ["domain"], name: "index_instances_on_domain", unique: true
 
   create_view "user_ips", sql_definition: <<-SQL
-      SELECT t0.user_id,
-      t0.ip,
-      max(t0.used_at) AS used_at
-     FROM ( SELECT users.id AS user_id,
-              users.sign_up_ip AS ip,
-              users.created_at AS used_at
-             FROM users
-            WHERE (users.sign_up_ip IS NOT NULL)
-          UNION ALL
-           SELECT session_activations.user_id,
-              session_activations.ip,
-              session_activations.updated_at
-             FROM session_activations
-          UNION ALL
-           SELECT login_activities.user_id,
-              login_activities.ip,
-              login_activities.created_at
-             FROM login_activities
-            WHERE (login_activities.success = true)) t0
-    GROUP BY t0.user_id, t0.ip;
-  SQL
+        SELECT t0.user_id,
+        t0.ip,
+        max(t0.used_at) AS used_at
+       FROM ( SELECT users.id AS user_id,
+                users.sign_up_ip AS ip,
+                users.created_at AS used_at
+               FROM users
+              WHERE (users.sign_up_ip IS NOT NULL)
+            UNION ALL
+             SELECT session_activations.user_id,
+                session_activations.ip,
+                session_activations.updated_at
+               FROM session_activations
+            UNION ALL
+             SELECT login_activities.user_id,
+                login_activities.ip,
+                login_activities.created_at
+               FROM login_activities
+              WHERE (login_activities.success = true)) t0
+      GROUP BY t0.user_id, t0.ip;
+    SQL
   create_view "account_summaries", materialized: true, sql_definition: <<-SQL
-      SELECT accounts.id AS account_id,
-      mode() WITHIN GROUP (ORDER BY t0.language) AS language,
-      mode() WITHIN GROUP (ORDER BY t0.sensitive) AS sensitive
-     FROM (accounts
-       CROSS JOIN LATERAL ( SELECT statuses.account_id,
-              statuses.language,
-              statuses.sensitive
-             FROM statuses
-            WHERE ((statuses.account_id = accounts.id) AND (statuses.deleted_at IS NULL) AND (statuses.reblog_of_id IS NULL))
-            ORDER BY statuses.id DESC
-           LIMIT 20) t0)
-    WHERE ((accounts.suspended_at IS NULL) AND (accounts.silenced_at IS NULL) AND (accounts.moved_to_account_id IS NULL) AND (accounts.discoverable = true) AND (accounts.locked = false))
-    GROUP BY accounts.id;
-  SQL
+        SELECT accounts.id AS account_id,
+        mode() WITHIN GROUP (ORDER BY t0.language) AS language,
+        mode() WITHIN GROUP (ORDER BY t0.sensitive) AS sensitive
+       FROM (accounts
+         CROSS JOIN LATERAL ( SELECT statuses.account_id,
+                statuses.language,
+                statuses.sensitive
+               FROM statuses
+              WHERE ((statuses.account_id = accounts.id) AND (statuses.deleted_at IS NULL) AND (statuses.reblog_of_id IS NULL))
+              ORDER BY statuses.id DESC
+             LIMIT 20) t0)
+      WHERE ((accounts.suspended_at IS NULL) AND (accounts.silenced_at IS NULL) AND (accounts.moved_to_account_id IS NULL) AND (accounts.discoverable = true) AND (accounts.locked = false))
+      GROUP BY accounts.id;
+    SQL
   add_index "account_summaries", ["account_id"], name: "index_account_summaries_on_account_id", unique: true
 
   create_view "global_follow_recommendations", materialized: true, sql_definition: <<-SQL
-      SELECT t0.account_id,
-      sum(t0.rank) AS rank,
-      array_agg(t0.reason) AS reason
-     FROM ( SELECT account_summaries.account_id,
-              ((count(follows.id))::numeric / (1.0 + (count(follows.id))::numeric)) AS rank,
-              'most_followed'::text AS reason
-             FROM ((follows
-               JOIN account_summaries ON ((account_summaries.account_id = follows.target_account_id)))
-               JOIN users ON ((users.account_id = follows.account_id)))
-            WHERE ((users.current_sign_in_at >= (now() - 'P30D'::interval)) AND (account_summaries.sensitive = false) AND (NOT (EXISTS ( SELECT 1
-                     FROM follow_recommendation_suppressions
-                    WHERE (follow_recommendation_suppressions.account_id = follows.target_account_id)))))
-            GROUP BY account_summaries.account_id
-           HAVING (count(follows.id) >= 5)
-          UNION ALL
-           SELECT account_summaries.account_id,
-              (sum((status_stats.reblogs_count + status_stats.favourites_count)) / (1.0 + sum((status_stats.reblogs_count + status_stats.favourites_count)))) AS rank,
-              'most_interactions'::text AS reason
-             FROM ((status_stats
-               JOIN statuses ON ((statuses.id = status_stats.status_id)))
-               JOIN account_summaries ON ((account_summaries.account_id = statuses.account_id)))
-            WHERE ((statuses.id >= (((date_part('epoch'::text, (now() - 'P30D'::interval)) * (1000)::double precision))::bigint << 16)) AND (account_summaries.sensitive = false) AND (NOT (EXISTS ( SELECT 1
-                     FROM follow_recommendation_suppressions
-                    WHERE (follow_recommendation_suppressions.account_id = statuses.account_id)))))
-            GROUP BY account_summaries.account_id
-           HAVING (sum((status_stats.reblogs_count + status_stats.favourites_count)) >= (5)::numeric)) t0
-    GROUP BY t0.account_id
-    ORDER BY (sum(t0.rank)) DESC;
-  SQL
+        SELECT t0.account_id,
+        sum(t0.rank) AS rank,
+        array_agg(t0.reason) AS reason
+       FROM ( SELECT account_summaries.account_id,
+                ((count(follows.id))::numeric / (1.0 + (count(follows.id))::numeric)) AS rank,
+                'most_followed'::text AS reason
+               FROM ((follows
+                 JOIN account_summaries ON ((account_summaries.account_id = follows.target_account_id)))
+                 JOIN users ON ((users.account_id = follows.account_id)))
+              WHERE ((users.current_sign_in_at >= (now() - 'P30D'::interval)) AND (account_summaries.sensitive = false) AND (NOT (EXISTS ( SELECT 1
+                       FROM follow_recommendation_suppressions
+                      WHERE (follow_recommendation_suppressions.account_id = follows.target_account_id)))))
+              GROUP BY account_summaries.account_id
+             HAVING (count(follows.id) >= 5)
+            UNION ALL
+             SELECT account_summaries.account_id,
+                (sum((status_stats.reblogs_count + status_stats.favourites_count)) / (1.0 + sum((status_stats.reblogs_count + status_stats.favourites_count)))) AS rank,
+                'most_interactions'::text AS reason
+               FROM ((status_stats
+                 JOIN statuses ON ((statuses.id = status_stats.status_id)))
+                 JOIN account_summaries ON ((account_summaries.account_id = statuses.account_id)))
+              WHERE ((statuses.id >= (((date_part('epoch'::text, (now() - 'P30D'::interval)) * (1000)::double precision))::bigint << 16)) AND (account_summaries.sensitive = false) AND (NOT (EXISTS ( SELECT 1
+                       FROM follow_recommendation_suppressions
+                      WHERE (follow_recommendation_suppressions.account_id = statuses.account_id)))))
+              GROUP BY account_summaries.account_id
+             HAVING (sum((status_stats.reblogs_count + status_stats.favourites_count)) >= (5)::numeric)) t0
+      GROUP BY t0.account_id
+      ORDER BY (sum(t0.rank)) DESC;
+    SQL
   add_index "global_follow_recommendations", ["account_id"], name: "index_global_follow_recommendations_on_account_id", unique: true
 
 end
