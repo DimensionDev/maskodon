@@ -27,7 +27,7 @@
 #  thumbnail_file_size         :integer
 #  thumbnail_updated_at        :datetime
 #  thumbnail_remote_url        :string
-#
+#  file_cid                    :string
 
 class MediaAttachment < ApplicationRecord
   self.inheritance_column = nil

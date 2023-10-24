@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_09_07_150100) do
+ActiveRecord::Schema[7.0].define(version: 2023_10_20_035146) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -618,6 +618,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_09_07_150100) do
     t.integer "thumbnail_file_size"
     t.datetime "thumbnail_updated_at", precision: nil
     t.string "thumbnail_remote_url"
+    t.string "file_cid"
     t.index ["account_id", "status_id"], name: "index_media_attachments_on_account_id_and_status_id", order: { status_id: :desc }
     t.index ["scheduled_status_id"], name: "index_media_attachments_on_scheduled_status_id", where: "(scheduled_status_id IS NOT NULL)"
     t.index ["shortcode"], name: "index_media_attachments_on_shortcode", unique: true, opclass: :text_pattern_ops, where: "(shortcode IS NOT NULL)"
