@@ -38,6 +38,8 @@
 .vscode/
 .idea/
 
+.package.json
+
 # Ignore postgres + redis + elasticsearch volume optionally created by docker-compose
 /postgres
 /postgres14
