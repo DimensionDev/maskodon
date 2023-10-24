@@ -19,6 +19,9 @@
     .actions
       = f.button :button, t('auth.login'), type: :submit
 
+
+%w3m-button
+-# %button{ id: 'web3-modal-connect' }= t('auth.login')
 - if devise_mapping.omniauthable? && resource_class.omniauth_providers.any?
   .simple_form.alternative-login
     %h4= omniauth_only? ? t('auth.log_in_with') : t('auth.or_log_in_with')
