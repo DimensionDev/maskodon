@@ -2,11 +2,11 @@
 #
 # Table name: credentials
 #
-#  id          :bigint           not null, primary key
-#  user_id     :bigint           not null
+#  id          :bigint(8)        not null, primary key
+#  user_id     :bigint(8)        not null
 #  external_id :string
 #  public_key  :string
-#  sign_count  :bigint
+#  sign_count  :bigint(8)
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
 #
