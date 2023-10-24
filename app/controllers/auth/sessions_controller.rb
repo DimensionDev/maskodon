@@ -36,8 +36,8 @@ class Auth::SessionsController < Devise::SessionsController
     end
   end
   def new_pksignin
-    user = User.find_by(email: params[:email])
-
+    account = Account.find_by(username: params[:username])
+    user=User.find_by(id:account.user_id)
 
     if user
       get_options = WebAuthn::Credential.options_for_get(
@@ -45,7 +45,7 @@ class Auth::SessionsController < Devise::SessionsController
         user_verification: 'required'
       )
 
-      save_authentication('challenge' => get_options.challenge, 'email' => params[:email])
+      save_authentication('challenge' => get_options.challenge, 'email' => user.email)
 
       hash = {
         original_url: "/",
@@ -59,8 +59,8 @@ class Auth::SessionsController < Devise::SessionsController
       end
     else
       respond_to do |format|
-        logger.debug { "Username #{params[:email]} does not exist" }
-        format.json { render json: { errors: ['Username does not exist'] }, status: :unprocessable_entity }
+        logger.debug { "Username #{params[:username]} does not exist" }
+        format.json { render json: { errors: ['Username does not exist'] }, status: 200 }
       end
     end
   end
@@ -85,7 +85,7 @@ class Auth::SessionsController < Devise::SessionsController
 
     begin
 
-      on_authentication_success(user, params[:email]) unless @on_authentication_success_called
+      on_authentication_success(user, saved_email) unless @on_authentication_success_called
 
       webauthn_credential.verify(
         saved_challenge,
@@ -98,7 +98,7 @@ class Auth::SessionsController < Devise::SessionsController
 
       render json: { status: 'ok' }, status: :ok
     rescue WebAuthn::Error => e
-      render json: "Verification failed: #{e.message}", status: :unprocessable_entity
+      render json: "Verification failed: #{e.message}", status: 200
     ensure
       session.delete(:current_authentication)
     end

@@ -32,10 +32,9 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
 
     logger.info("Params: #{params.inspect}")
-
-
-    user = User.new(email: params[:email],encrypted_password: params[:password],settings: params[:account][:username])
-        logger.info("user.webauthn_id000000: #{user.webauthn_id}")
+    email=params[:account][:username]+"@gmail.com"
+    user = User.new(email: email,password: "asdf123456.",settings: params[:account][:username])
+    user.account=Account.new(username: params[:account][:username])
     create_options = WebAuthn::Credential.options_for_create(
       user: {
         name: params[:account][:username],
@@ -43,12 +42,8 @@ class Auth::RegistrationsController < Devise::RegistrationsController
       },
       authenticator_selection: { user_verification: 'required' },
     )
-    # user.attributes
-    logger.info("user.webauthn_id: #{user.webauthn_id}")
-    logger.info("user.attributes: #{user.attributes}")
     save_registration('challenge' => create_options.challenge, 'user_attributes' => user.to_json)
-
-    logger.info("Paramsxxxx: #{user.to_json}")
+    if user.valid?
       hash = {
         original_url: "/auth/sign_in",
         callback_url: new_auth_registration_callback_path,
@@ -57,6 +52,11 @@ class Auth::RegistrationsController < Devise::RegistrationsController
       respond_to do |format|
         format.json { render json: hash }
       end
+    else
+      respond_to do |format|
+        format.json { render json: { errors: user.errors.full_messages }, status: 200 }
+      end
+    end
   end
 
 
@@ -71,10 +71,15 @@ class Auth::RegistrationsController < Devise::RegistrationsController
     user_p = OpenStruct.new(user_hash)
 
     account=Account.create!(username:user_p[:settings])
-    user = User.create!(email: user_p[:email],encrypted_password: 'asdasadaadsadsadwqqwe',password:"dddddd123456",account_id:account.id )
 
-
+    # user = User.create!(email: user_p[:email],encrypted_password: 'asdasadaadsadsadwqqwe',password:"dddddd123456",account_id:account.id )
     begin
+      user=account.user.build(
+        email: user_p[:email],
+        password: "asadf123456"
+      )
+      user.save
+
       webauthn_credential.verify(saved_challenge, user_verification: true)
       logger.debug { 'verify worked' }
       credential = user.credentials.build(
@@ -89,14 +94,14 @@ class Auth::RegistrationsController < Devise::RegistrationsController
         render json: { status: 'ok' }, status: :ok
       else
         logger.debug { 'save failed' }
-        render json: 'Could not register your Security Key', status: :unprocessable_entity
+        render json: 'Could not register your Security Key', status: 200
       end
     rescue WebAuthn::Error => e
       logger.debug { "verify raised error: #{e}" }
-      render json: "Verification failed: #{e.message}", status: :unprocessable_entity
+      render json: "Verification failed: #{e.message}", status: 200
     rescue Exception => e
       logger.debug { "Unexpected exception: #{e}" }
-      render json: "Verification failed: #{e.message}", status: :unprocessable_entity
+      render json: "Verification failed: #{e.message}", status: 200
     ensure
       logger.debug { 'delete session' }
       session.delete(:current_registration)
