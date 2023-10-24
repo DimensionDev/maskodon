@@ -6,6 +6,8 @@ import { IntlMessageFormat }  from 'intl-messageformat';
 import { defineMessages } from 'react-intl';
 
 import { delegate }  from '@rails/ujs';
+import { mainnet , arbitrum } from '@wagmi/core/chains';
+import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi';
 import axios from 'axios';
 import { throttle } from 'lodash';
 
@@ -19,6 +21,25 @@ import ready from '../mastodon/ready';
 
 import 'cocoon-js-vanilla';
 
+
+window.addEventListener('DOMContentLoaded', () => {
+  // 1. Define constants
+  const projectId = 'd7bada49f9ce3d4d430dd39e5c2c48b0';
+
+  // 2. Create wagmiConfig
+  const metadata = {
+    name: 'Web3Modal',
+    description: 'Web3Modal Example',
+    url: 'https://web3modal.com',
+    icons: ['https://avatars.githubusercontent.com/u/37784886']
+  };
+
+  const chains = [mainnet, arbitrum];
+  const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata });
+
+  // 3. Create modal
+  createWeb3Modal({ wagmiConfig, projectId, chains });
+});
 start();
 
 const messages = defineMessages({
@@ -272,6 +293,7 @@ delegate(document, '#registration_new_user,#new_user', 'submit', () => {
     }
   });
 });
+
 
 function main() {
   ready(loaded);
