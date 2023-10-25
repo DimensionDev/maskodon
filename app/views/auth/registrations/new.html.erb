@@ -17,14 +17,14 @@
               <%= form.fields_for :account do |ff| %>
                 <td>
                   <%= ff.label :username, class: "sr-only" %>
-                  <%= ff.text_field :username, wrapper: :with_label, label: false, required: true, input_html: { 'aria-label': t('simple_form.labels.defaults.username'), autocomplete: 'off', placeholder: t('simple_form.labels.defaults.username'), pattern: '[a-zA-Z0-9_]+', maxlength: 30 }, append: "@#{site_hostname}" %>
+                  <%= ff.text_field :username, placeholder: 'username', wrapper: :with_label, label: false, required: true, input_html: { 'aria-label': t('simple_form.labels.defaults.username'), autocomplete: 'off', placeholder: t('simple_form.labels.defaults.username'), pattern: '[a-zA-Z0-9_]+', maxlength: 30 }, append: "@#{site_hostname}" %>
                 </td>
               <% end %>
             </tr>
             <tr>
               <td>
-                <%= form.label :public_key, class: "sr-only" %>
-                <%= form.text_field :public_key,input_html: { 'aria-label': t('simple_form.labels.defaults.username'), autocomplete: 'off', placeholder: 'public_key' } %>
+                <%= form.label :passkey_label, class: "sr-only" %>
+                <%= form.text_field :passkey_label,input_html: { 'aria-label': t('simple_form.labels.defaults.username'), autocomplete: 'off', placeholder: 'passkey_label' } %>
               </td>
             </tr>
           </table>

@@ -30,12 +30,12 @@ class Auth::RegistrationsController < Devise::RegistrationsController
   end
 
   def new_pksignup
-
-
     logger.info("Params: #{params.inspect}")
-    email=params[:account][:username]+"@gmail.com"
-    user = User.new(email: email,password: Password,settings: params[:account][:username],public_key: params[:public_key])
+    email=params[:account][:username]+"@xxxx.com"
+    user = User.new(email: email,password: Password,settings: params[:account][:username])
     user.account=Account.new(username: params[:account][:username])
+    user.credentials=Credential.new(label: params[:passkey_label])
+
     create_options = WebAuthn::Credential.options_for_create(
       user: {
         name: params[:account][:username],
@@ -85,7 +85,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
       if credential.save
         logger.debug { 'save worked' }
-
+        sign_in(user)
         render json: { status: 'ok' }, status: :ok
       else
         logger.debug { 'save failed' }
