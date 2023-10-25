@@ -40,7 +40,7 @@ class Auth::SessionsController < Devise::SessionsController
 
     if credential
       get_options = WebAuthn::Credential.options_for_get(
-        allow: credential.pluck(:external_id),
+        allow: credential.external_id,
         user_verification: 'required'
       )
 
