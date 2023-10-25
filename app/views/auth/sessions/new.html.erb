@@ -10,11 +10,11 @@
                     class: "mt-8 space-y-6") do |form| %>
         <div class="-space-y-px rounded-md shadow-sm">
           <div>
-            <%= form.label :email, class: "sr-only" %>
-            <%= form.text_field(:public_key,
+            <%= form.label :passkey_label, class: "sr-only" %>
+            <%= form.text_field(:passkey_label,
                                 required: true,
                                 class: "relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm",
-                                placeholder: 'public_key') %>
+                                placeholder: 'passkey_label') %>
           </div>
         </div>
 

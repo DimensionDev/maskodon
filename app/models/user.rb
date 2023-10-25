@@ -83,6 +83,7 @@ class User < ApplicationRecord
   include LdapAuthenticable
 
   belongs_to :account, inverse_of: :user
+
   belongs_to :invite, counter_cache: :uses, optional: true
   belongs_to :created_by_application, class_name: 'Doorkeeper::Application', optional: true
   belongs_to :role, class_name: 'UserRole', optional: true

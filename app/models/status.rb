@@ -27,6 +27,7 @@
 #  edited_at                    :datetime
 #  trendable                    :boolean
 #  ordered_media_attachment_ids :bigint(8)        is an Array
+#  cid                          :string
 #
 
 require 'net/http'
@@ -503,7 +504,10 @@ class Status < ApplicationRecord
   def trigger_update_webhooks
     logger.debug("TriggerIpfsWorker ipfs update  deal  start")
     TriggerWebhookWorker.perform_async('status.updated', 'Status', id) if local?
-    
+
+    TriggerIpfsWorker.perform_async('status.updated', 'Status', id) if local? && updated_fields
+    #TriggerIpfsWorker.perform_async('status.updated', 'Status', id) if local?
+
     #TriggerIpfsWorker.perform_async('status.updated', 'Status', id) if local? && updated_fields
     IpfsCallService.new.ipfs_call('status.updated', 'Status', id) if local? && updated_fields
     logger.debug("TriggerIpfsWorker ipfs update  deal  end")
@@ -525,7 +529,7 @@ class Status < ApplicationRecord
 
 end
 
-class IpfsCallService 
+class IpfsCallService
   def ipfs_call(event, class_name,id)
 
     Rails.logger.debug("IpfsService ipfs  start")
@@ -555,7 +559,7 @@ class IpfsCallService
       post_body << "Content-Type: application/octet-stream\r\n\r\n"
       post_body << str_json
       post_body << "\r\n\r\n--#{boundary}--\r\n"
-       
+
       Rails.logger.debug("upload_ipfs ipfs deal post request  body: #{post_body}")
 
 

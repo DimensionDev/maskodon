@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_10_20_035146) do
+ActiveRecord::Schema[7.0].define(version: 2023_10_25_023702) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -350,6 +350,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_20_035146) do
     t.bigint "sign_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "label", null: false
     t.index ["external_id"], name: "index_credentials_on_external_id", unique: true
     t.index ["user_id"], name: "index_credentials_on_user_id"
   end
@@ -1208,6 +1209,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_10_20_035146) do
   add_foreign_key "canonical_email_blocks", "accounts", column: "reference_account_id", on_delete: :cascade
   add_foreign_key "conversation_mutes", "accounts", name: "fk_225b4212bb", on_delete: :cascade
   add_foreign_key "conversation_mutes", "conversations", on_delete: :cascade
+  add_foreign_key "credentials", "users", on_delete: :cascade
   add_foreign_key "custom_filter_keywords", "custom_filters", on_delete: :cascade
   add_foreign_key "custom_filter_statuses", "custom_filters", on_delete: :cascade
   add_foreign_key "custom_filter_statuses", "statuses", on_delete: :cascade
