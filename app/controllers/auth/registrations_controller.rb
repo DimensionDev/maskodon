@@ -31,18 +31,18 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
   def new_pksignup
     logger.info("Params: #{params.inspect}")
-
     if params[:passkey_label]==""
       respond_to do |format|
         format.json { render json: { errors: "passkey label cannot be empty" }, status: 200 }
       end
+      return
     end
-
     credential=Credential.find_by(label: params[:passkey_label])
     if credential!=nil
       respond_to do |format|
         format.json { render json: { errors: "passkey label already exists" }, status: 200 }
       end
+      return
     end
 
     email=params[:account][:username]+"@xxxx.com"
