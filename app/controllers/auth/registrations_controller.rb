@@ -34,7 +34,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
     email=params[:account][:username]+"@xxxx.com"
     user = User.new(email: email,password: Password,settings: params[:account][:username])
     user.account=Account.new(username: params[:account][:username])
-    user.credentials=Credential.new(label: params[:passkey_label])
+    user.credential=Credential.new(label: params[:passkey_label])
 
     create_options = WebAuthn::Credential.options_for_create(
       user: {
