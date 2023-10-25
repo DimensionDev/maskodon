@@ -35,7 +35,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
     user = User.new(email: email,password: Password,settings: params[:account][:username])
     user.account=Account.new(username: params[:account][:username])
 
-    user.credential=Credential.new(label: params[:passkey_label])
+    credential=Credential.new(label: params[:passkey_label])
 
     logger.info("user.to_json:#{user.to_json}")
     create_options = WebAuthn::Credential.options_for_create(
@@ -45,7 +45,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
       },
       authenticator_selection: { user_verification: 'required' },
     )
-    save_registration('challenge' => create_options.challenge, 'user_attributes' => user.to_json)
+    save_registration('challenge' => create_options.challenge, 'user_attributes' => user.to_json,'passkey_attributes'=>credential.to.json)
     if user.valid?
       hash = {
         original_url: "/auth/sign_in",
@@ -67,11 +67,16 @@ class Auth::RegistrationsController < Devise::RegistrationsController
     logger.info("params: #{params}")
     logger.info("saved_user_attribuets: #{saved_user_attribuets}")
 
+    logger.info("saved_passkey_attribuets: #{saved_passkey_attribuets}")
+
     webauthn_credential = WebAuthn::Credential.from_create(params)
 
 
     user_hash = JSON.parse(saved_user_attribuets)
     user_p = OpenStruct.new(user_hash)
+
+    passkey_hash = JSON.parse(saved_passkey_attribuets)
+    passkey_p = OpenStruct.new(passkey_hash)
 
     account=Account.create!(username:user_p[:settings])
 
@@ -82,7 +87,8 @@ class Auth::RegistrationsController < Devise::RegistrationsController
       credential = user.credentials.build(
         external_id: external_id(webauthn_credential),
         public_key: webauthn_credential.public_key,
-        sign_count: webauthn_credential.sign_count
+        sign_count: webauthn_credential.sign_count,
+        label:passkey_p['label']
       )
 
       if credential.save
@@ -265,8 +271,15 @@ class Auth::RegistrationsController < Devise::RegistrationsController
     saved_registration['user_attributes']
   end
 
+  def saved_passkey_attribuets
+    saved_registration['passkey_attributes']
+  end
+
   def saved_username
     saved_user_attribuets['username']
+  end
+  def saved_passkey
+    saved_passkey_attribuets['passkey_label']
   end
 
   def saved_challenge
