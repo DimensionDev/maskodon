@@ -74,8 +74,6 @@ class PostStatusService < BaseService
 
   def process_status!
     @status = @account.statuses.new(status_attributes)
-    @status.cid = IpfsPostService.new.ipfs_call(@status)
-    #@status.update_column(:cid, status_cid)
     process_mentions_service.call(@status, save_records: false)
     safeguard_mentions!(@status)
 
@@ -84,6 +82,8 @@ class PostStatusService < BaseService
     ApplicationRecord.transaction do
       @status.save!
     end
+    @status.cid = IpfsPostService.new.ipfs_call(@status)
+    @status.save!
   end
 
   def safeguard_mentions!(status)
