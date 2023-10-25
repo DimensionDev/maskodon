@@ -82,13 +82,6 @@ Rails.application.routes.draw do
 
     resource :unsubscribe, only: [:show, :create], controller: :mail_subscriptions
 
-
-
-    post 'reauthenticate/new_challenge', to: 'auth/reauthentication#new_challenge', as: :new_auth_reauthentication_challenge
-    post 'reauthenticate', to: 'auth/reauthentication#reauthenticate', as: :auth_reauthentication
-
-
-
     namespace :auth do
 
       resource :setup, only: [:show, :update], controller: :setup
@@ -97,9 +90,6 @@ Rails.application.routes.draw do
       post 'captcha_confirmation', to: 'confirmations#confirm_captcha', as: :captcha_confirmation
     end
   end
-
-
-
 
   devise_for :users, path: 'auth', format: false, controllers: {
     omniauth_callbacks: 'auth/omniauth_callbacks',
