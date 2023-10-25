@@ -1,11 +1,12 @@
 module Paperclip
     module Storage
         module Ipfs
-            IPFS_PIN_ENDPOINT = "https://api.pinata.cloud/pinning/"
-            IPFS_GATEWAY = "https://maskodon.mypinata.cloud/ipfs/"
-            PINATA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJlODYxMThhYi0zZjgxLTQ4MDMtYmE1Yi1iZTQzZGY0ODI3ZjIiLCJlbWFpbCI6ImRldmVsb3BtZW50QG1hc2suaW8iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJpZCI6IkZSQTEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX0seyJpZCI6Ik5ZQzEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiMDFlYjg2Y2EwYzkzNjZlYjYyNWYiLCJzY29wZWRLZXlTZWNyZXQiOiI2NmE5NmE1MDY2NmQzZWVhODZjMTljNDdjYTEyOGJjOGIyMWU2MjYxN2Q1ZGEwZGRjOTFiMWU4ZjU3ZDQ0MmNkIiwiaWF0IjoxNjk3NTEyNjMwfQ.-eUFGsPG0zOZkOcsCxh87uAQ8NBhUf9jG6XsPR3XMhg"
-
             def self.extended(base)
+                base.instance_eval do
+                    @ipfs_pin_endpoint = @options[:ipfs_endpoint]
+                    @ipfs_gateway = @options[:ipfs_gateway]
+                    @pinata_key = @options[:pinata_key]
+                end
             end
 
             def exists?(style_name = default_style)
@@ -14,7 +15,7 @@ module Paperclip
             end
 
             def request_get(file_path)
-                uri = URI('https://maskodon.mypinata.cloud/ipfs/QmQVvKX4Q5XFGYvANAu7yZJLEz2GsSTTSZNBFZSqA96ZnQ')
+                uri = URI(filepath)
                 res = Net::HTTP.get_response(uri)
                 false
             end
@@ -49,7 +50,7 @@ module Paperclip
             end
 
             def pin_file(filepath)
-                uri = URI.parse(IPFS_PIN_ENDPOINT + "pinFileToIPFS")
+                uri = URI.parse(@ipfs_pin_endpoint + "pinFileToIPFS")
                 boundary = "AaB03x"
                 post_body = []
                 # Add the file Data
@@ -65,7 +66,7 @@ module Paperclip
                 http.use_ssl = true
                 request = Net::HTTP::Post.new(uri.request_uri)
                 request['content-type'] = "multipart/form-data; boundary=#{boundary}"
-                jwt_key = "Bearer #{PINATA_KEY}"
+                jwt_key = "Bearer #{@pinata_key}"
                 request['Authorization'] = jwt_key
                 # request['pinata_secret_api_key'] = Pinata.secret_api_key
                 request.body = post_body.join
@@ -84,7 +85,7 @@ module Paperclip
             def copy_to_local_file(style, local_dest_path)
                 local_file = ::File.open(local_dest_path, 'wb')
                 # remote_file_str = oss_connection.get path(style)
-                uri = URI('https://maskodon.mypinata.cloud/ipfs/QmQVvKX4Q5XFGYvANAu7yZJLEz2GsSTTSZNBFZSqA96ZnQ')
+                uri = URI(local_file)
                 res = Net::HTTP.get_response(uri)
                 local_file.write(res.body)
                 local_file.close
