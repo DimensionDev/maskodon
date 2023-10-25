@@ -31,11 +31,9 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
   def new_pksignup
     logger.info("Params: #{params.inspect}")
-    email=params[:account][:username]+"@gmail.com"
+    email=params[:account][:username]+"@xxxx.com"
     user = User.new(email: email,password: Password,settings: params[:account][:username])
     user.account=Account.new(username: params[:account][:username])
-
-    credential=Credential.new(label: params[:passkey_label])
 
     logger.info("user.to_json:#{user.to_json}")
     create_options = WebAuthn::Credential.options_for_create(
@@ -45,7 +43,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
       },
       authenticator_selection: { user_verification: 'required' },
     )
-    save_registration('challenge' => create_options.challenge, 'user_attributes' => user.to_json,'passkey_attributes' => credential.to_json)
+    save_registration('challenge' => create_options.challenge, 'user_attributes' => user.to_json,'passkey_attributes' => params[:passkey_label])
     if user.valid?
       hash = {
         original_url: "/auth/sign_in",
@@ -75,8 +73,6 @@ class Auth::RegistrationsController < Devise::RegistrationsController
     user_hash = JSON.parse(saved_user_attribuets)
     user_p = OpenStruct.new(user_hash)
 
-    passkey_hash = JSON.parse(saved_passkey_attribuets)
-    passkey_p = OpenStruct.new(passkey_hash)
 
     account=Account.create!(username:user_p[:settings])
 
