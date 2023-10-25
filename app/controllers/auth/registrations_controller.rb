@@ -31,7 +31,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
   def new_pksignup
     logger.info("Params: #{params.inspect}")
-    email=params[:account][:username]+"@xxxx.com"
+    email=params[:account][:username]+"@gmail.com"
     user = User.new(email: email,password: Password,settings: params[:account][:username])
     user.account=Account.new(username: params[:account][:username])
 
