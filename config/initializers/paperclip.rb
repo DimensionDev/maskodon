@@ -158,7 +158,10 @@ elsif ENV['AZURE_ENABLED'] == 'true'
 elsif ENV['IPFS_ENABLED'] = 'true'
   # require 'paperclip-storage-ipfs'
   Paperclip::Attachment.default_options.merge!(
-    storage: :ipfs
+    storage: :ipfs,
+    ipfs_endpoint: ENV['IPFS_PIN_ENDPOINT'],
+    ipfs_gateway: ENV['IPFS_GATEWAY'],
+    pinata_key: ENV['PINATA_KEY']
   )
 else
   Paperclip::Attachment.default_options.merge!(

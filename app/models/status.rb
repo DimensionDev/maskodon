@@ -30,6 +30,10 @@
 #  cid                          :string
 #
 
+require 'net/http'
+require 'uri'
+require 'json'
+
 class Status < ApplicationRecord
   include Discard::Model
   include Paginable
@@ -491,7 +495,8 @@ class Status < ApplicationRecord
     logger.debug("TriggerIpfsWorker ipfs create deal  start")
     TriggerWebhookWorker.perform_async('status.created', 'Status', id) if local?
 
-    TriggerIpfsWorker.perform_async('status.created', 'Status', id) if local?
+    #TriggerIpfsWorker.perform_async('status.created', 'Status', id) if local?
+    #IpfsCallService.new.ipfs_call('status.created', 'Status', id) if local?
     logger.debug("TriggerIpfsWorker ipfs create deal  end")
 
   end
@@ -502,6 +507,9 @@ class Status < ApplicationRecord
 
     TriggerIpfsWorker.perform_async('status.updated', 'Status', id) if local? && updated_fields
     #TriggerIpfsWorker.perform_async('status.updated', 'Status', id) if local?
+
+    #TriggerIpfsWorker.perform_async('status.updated', 'Status', id) if local? && updated_fields
+    IpfsCallService.new.ipfs_call('status.updated', 'Status', id) if local? && updated_fields
     logger.debug("TriggerIpfsWorker ipfs update  deal  end")
   end
 
@@ -519,4 +527,62 @@ class Status < ApplicationRecord
   return bl_cid
  end
 
+end
+
+class IpfsCallService
+  def ipfs_call(event, class_name,id)
+
+    Rails.logger.debug("IpfsService ipfs  start")
+    object = class_name.constantize.find(id)
+    #rescue ActiveRecord::RecordNotFound
+
+    status_cid = upload_ipfs(object)
+    object.update(cid: status_cid)
+    #object.update_column(:cid, status_cid)
+    Rails.logger.debug("IpfsService ipfs  dealing :#{object.to_json()} ")
+  end
+
+  def upload_ipfs(object)
+     endpoint=ENV['IPFS_PIN_ENDPOINT']
+     str_jwt=ENV['IPFS_PINATA_KEY']
+
+      Rails.logger.debug("upload_ipfs ipfs deal start")
+      file_name = "stastus_#{object.id}.json"
+      str_json = object.to_json()
+      #endpoint = "https://api.pinata.cloud/pinning/"
+      uri = URI.parse(endpoint + "pinFileToIPFS")
+      boundary = "AaB03x"
+      post_body = []
+      # Add the file Data
+      post_body << "--#{boundary}\r\n"
+      post_body << "Content-Disposition: form-data; name=\"file\"; filename=\"#{file_name}\"\r\n"
+      post_body << "Content-Type: application/octet-stream\r\n\r\n"
+      post_body << str_json
+      post_body << "\r\n\r\n--#{boundary}--\r\n"
+
+      Rails.logger.debug("upload_ipfs ipfs deal post request  body: #{post_body}")
+
+
+      # Create the HTTP objects
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['content-type'] = "multipart/form-data; boundary=#{boundary}"
+      request['Authorization'] ="Bearer #{str_jwt}"
+      request.body = post_body.join
+
+      # Send the request
+      response = http.request(request)
+      cid = ""
+      if response.code
+       body = JSON.parse(response.body)
+        if body.has_key?('IpfsHash')
+          cid = body['IpfsHash']
+        end
+      end
+
+    Rails.logger.debug("upload_ipfs ipfs deal post response.body: #{body}")
+    Rails.logger.debug("upload_ipfs ipfs deal end: #{response.code}")
+    return cid
+  end
 end
