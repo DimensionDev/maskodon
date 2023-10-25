@@ -45,7 +45,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
       },
       authenticator_selection: { user_verification: 'required' },
     )
-    save_registration('challenge' => create_options.challenge, 'user_attributes' => user.to_json,'passkey_attributes'=>credential.to_json)
+    save_registration('challenge' => create_options.challenge, 'user_attributes' => user.to_json,'passkey_attributes' => credential.to_json)
     if user.valid?
       hash = {
         original_url: "/auth/sign_in",
