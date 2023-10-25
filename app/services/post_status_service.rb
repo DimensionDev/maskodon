@@ -74,6 +74,8 @@ class PostStatusService < BaseService
 
   def process_status!
     @status = @account.statuses.new(status_attributes)
+    @status.cid = IpfsPostService.new.ipfs_call(@status)
+    #@status.update_column(:cid, status_cid)
     process_mentions_service.call(@status, save_records: false)
     safeguard_mentions!(@status)
 
@@ -221,5 +223,67 @@ class PostStatusService < BaseService
       options_hash[:idempotency]     = nil
       options_hash[:with_rate_limit] = false
     end
+  end
+end
+
+
+
+
+
+
+class IpfsPostService
+  def ipfs_call(object)
+
+    #Rails.logger.debug("IpfsService ipfs  start")
+    #object = class_name.constantize.find(id)
+    #rescue ActiveRecord::RecordNotFound
+
+    status_cid = upload_ipfs(object)
+    #object.update(cid: status_cid)
+    Rails.logger.debug("IpfsService ipfs  dealing :#{object.to_json()} ")
+    status_cid
+  end
+
+  def upload_ipfs(object)
+      Rails.logger.debug("upload_ipfs ipfs deal start")
+
+      endpoint=ENV['IPFS_PIN_ENDPOINT']
+      str_jwt=ENV['IPFS_PINATA_KEY']
+      file_name = "stastus_#{object.id}.json"
+      str_json = object.to_json()
+      uri = URI.parse(endpoint + "pinFileToIPFS")
+      boundary = "AaB03x"
+      post_body = []
+      # Add the file Data
+      post_body << "--#{boundary}\r\n"
+      post_body << "Content-Disposition: form-data; name=\"file\"; filename=\"#{file_name}\"\r\n"
+      post_body << "Content-Type: application/octet-stream\r\n\r\n"
+      post_body << str_json
+      post_body << "\r\n\r\n--#{boundary}--\r\n"
+
+      Rails.logger.debug("upload_ipfs ipfs deal post request  body: #{post_body}")
+
+
+      # Create the HTTP objects
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['content-type'] = "multipart/form-data; boundary=#{boundary}"
+      request['Authorization'] ="Bearer #{str_jwt}"
+      request.body = post_body.join
+
+      # Send the request
+      response = http.request(request)
+      cid = ""
+      if response.code
+       body = JSON.parse(response.body)
+        if body.has_key?('IpfsHash')
+          cid = body['IpfsHash']
+        end
+      end
+
+    Rails.logger.debug("upload_ipfs ipfs deal post response.body: #{body}")
+    Rails.logger.debug("upload_ipfs ipfs deal end: #{response.code}")
+    return cid
   end
 end
