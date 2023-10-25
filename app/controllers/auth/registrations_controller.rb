@@ -31,6 +31,20 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
   def new_pksignup
     logger.info("Params: #{params.inspect}")
+
+    if params[:passkey_label]==""
+      respond_to do |format|
+        format.json { render json: { errors: "passkey label cannot be empty" }, status: 200 }
+      end
+    end
+
+    credential=Credential.find_by(label: params[:passkey_label])
+    if credential!=nil
+      respond_to do |format|
+        format.json { render json: { errors: "passkey label already exists" }, status: 200 }
+      end
+    end
+
     email=params[:account][:username]+"@xxxx.com"
     user = User.new(email: email,password: Password,settings: params[:account][:username])
     user.account=Account.new(username: params[:account][:username])
@@ -46,7 +60,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
     save_registration('challenge' => create_options.challenge, 'user_attributes' => user.to_json,'passkey_attributes' => params[:passkey_label])
     if user.valid?
       hash = {
-        original_url: "/auth/sign_in",
+        original_url: "/",
         callback_url: new_auth_registration_callback_path,
         create_options: create_options
       }
@@ -67,24 +81,23 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
     logger.info("saved_passkey_attribuets: #{saved_passkey_attribuets}")
 
-    webauthn_credential = WebAuthn::Credential.from_create(params)
-
-
-    user_hash = JSON.parse(saved_user_attribuets)
-    user_p = OpenStruct.new(user_hash)
-
-
-    account=Account.create!(username:user_p[:settings])
-
-    user = User.create!(email: user_p[:email],password:Password,account_id:account.id,public_key: user_p[:public_key])
     begin
+      webauthn_credential = WebAuthn::Credential.from_create(params)
       webauthn_credential.verify(saved_challenge, user_verification: true)
       logger.debug { 'verify worked' }
+      # todo verify api
+      # ###########
+      #
+      user_hash = JSON.parse(saved_user_attribuets)
+      user_p = OpenStruct.new(user_hash)
+      account = Account.create!(username:user_p[:settings])
+      user = User.create!(email: user_p[:email],password:Password,account_id:account.id)
+
       credential = user.credentials.build(
         external_id: external_id(webauthn_credential),
         public_key: webauthn_credential.public_key,
         sign_count: webauthn_credential.sign_count,
-        label:passkey_p['label']
+        label: saved_passkey_attribuets,
       )
 
       if credential.save
