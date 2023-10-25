@@ -35,7 +35,9 @@ class UpdateStatusService < BaseService
     reset_preview_card!
     update_metadata!
     broadcast_updates!
-
+    logger.debug("UpdateStatusService ipfs update  deal  start")
+    IpfsDealService.new.all('status.updated',@status)
+    logger.debug("UpdateStatusService ipfs update  deal  end")
     @status
   rescue NoChangesSubmittedError
     # For calls that result in no changes, swallow the error
