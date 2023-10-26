@@ -6,6 +6,8 @@ class Auth::SessionsController < Devise::SessionsController
   # include Devise::Passkeys::Controllers::SessionsControllerConcern
   # include RelyingParty
 
+  skip_before_action :verify_authenticity_token, only: [:new_pksignin]
+
   skip_before_action :require_no_authentication, only: [:create]
   skip_before_action :require_functional!
   skip_before_action :update_user_sign_in

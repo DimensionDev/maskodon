@@ -9,6 +9,8 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
   layout :determine_layout
 
+  skip_before_action :verify_authenticity_token, only: [:new_pksignup]
+
   before_action :set_invite, only: [:new, :create]
   before_action :check_enabled_registrations, only: [:new, :create]
   before_action :configure_sign_up_params, only: [:create]
