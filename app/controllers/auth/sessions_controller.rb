@@ -71,6 +71,8 @@ class Auth::SessionsController < Devise::SessionsController
 
   # POST   /session/callback(.:format)
   def callback
+    logger.info("params: #{params.to_json}")
+
     logger.debug { 'in session#callback' }
 
     webauthn_credential = WebAuthn::Credential.from_get(params)

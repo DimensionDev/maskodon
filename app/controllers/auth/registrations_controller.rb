@@ -76,7 +76,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
 
   def callback
-    logger.info("params: #{params}")
+    logger.info("params: #{params.to_json}")
     logger.info("saved_user_attribuets: #{saved_user_attribuets}")
 
     logger.info("saved_passkey_attribuets: #{saved_passkey_attribuets}")
