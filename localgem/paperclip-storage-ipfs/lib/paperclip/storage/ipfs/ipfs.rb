@@ -31,7 +31,7 @@ module Paperclip
                         }
 
                         cid = pin_file(file.path)
-                        instance.update_column(:file_cid, cid)
+                        instance.update_column(:file_cid, cid) if instance.respond_to?(:file_cid)
                     rescue Net::HTTPError => e
                         if e.status_code == 404
                             create_container
