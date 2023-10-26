@@ -40,11 +40,8 @@ function callback(original_url, callback_url, body) {
 }
 
 
-function setCookie(cname, cvalue, exdays) {
-  var d = new Date();
-  d.setTime(d.getTime() + (exdays*24*60*60*1000));
-  var expires = "expires="+d.toUTCString();
-  document.cookie = cname + "=" + cvalue + "; " + expires;
+function clearCookie(cookieName) {
+  document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 }
 
 function create(data) {
@@ -53,7 +50,7 @@ function create(data) {
   WebAuthnJSON.create(options).then((credentials) => {
     callback(original_url, callback_url, credentials);
   }).catch(function(error) {
-    setCookie('_mastodon_session', "", -1);
+    clearCookie('_mastodon_session');
     console.log("credential: create error", error);
   });
 
@@ -66,7 +63,7 @@ function get(data) {
   WebAuthnJSON.get(options).then((credentials) => {
     callback(original_url, callback_url, credentials);
   }).catch(function(error) {
-    setCookie('_mastodon_session', "", -1);
+    clearCookie('_mastodon_session');
     console.log("credential: get error", error);
   });
 
