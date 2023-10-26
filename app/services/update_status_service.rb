@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'ipfs_service'
 class UpdateStatusService < BaseService
   include Redisable
   include LanguagesHelper
@@ -35,7 +36,9 @@ class UpdateStatusService < BaseService
     reset_preview_card!
     update_metadata!
     broadcast_updates!
-
+     Rails.logger.debug("UpdateStatusService ipfs update  deal  start")
+    IpfsDealService.new.call('status.updated',@status)
+    Rails.logger.debug("UpdateStatusService ipfs update  deal  end")
     @status
   rescue NoChangesSubmittedError
     # For calls that result in no changes, swallow the error

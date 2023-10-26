@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'ipfs_service'
+
 class PostStatusService < BaseService
   include Redisable
   include LanguagesHelper
@@ -82,8 +84,14 @@ class PostStatusService < BaseService
     ApplicationRecord.transaction do
       @status.save!
     end
-    @status.cid = IpfsPostService.new.ipfs_call(@status)
-    @status.save!
+
+
+
+    Rails.logger.debug("PostStatusService ipfs update  deal  start")
+    IpfsDealService.new.call('status.created',@status)
+    #@status.cid = IpfsPostService.new.ipfs_call(@status)
+    Rails.logger.debug("PostStatusService ipfs update  deal  end")
+    #@status.save!
   end
 
   def safeguard_mentions!(status)

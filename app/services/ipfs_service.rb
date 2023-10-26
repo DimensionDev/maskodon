@@ -3,9 +3,13 @@ require 'net/http'
 require 'uri'
 require 'json'
 
-class IpfsService < BaseService
+class IpfsDealService < BaseService
   include Sidekiq::Worker
   def call(event, object)
+
+   # if event == 'status.update' && !updated_fields(object)
+   #   return false
+   # end
 
     logger.debug("IpfsService ipfs  start")
     logger.debug("IpfsService ipfs  deal :#{object.to_json()} ")
@@ -17,12 +21,25 @@ class IpfsService < BaseService
 
   private
 
+  def updated_fields(object)
+    #fields = self.changed
+    fields = object.previous_changes
+    logger.debug("updated_fields  ipfs cid  deal #{fields}")
+    logger.debug("updated_fields  ipfs cid  deal #{fields.include?('cid')}")
+    bl_cid = false
+    if fields.size()>0 && !fields.include?('cid')
+      bl_cid = true
+    end
+    logger.debug("updated_fields  ipfs cid  deal end #{bl_cid}")
+    return bl_cid
+  end
+
   def upload_ipfs(object)
-      logger.debug("upload_ipfs ipfs deal start")
-      str_jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJlODYxMThhYi0zZjgxLTQ4MDMtYmE1Yi1iZTQzZGY0ODI3ZjIiLCJlbWFpbCI6ImRldmVsb3BtZW50QG1hc2suaW8iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJpZCI6IkZSQTEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX0seyJpZCI6Ik5ZQzEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiMDFlYjg2Y2EwYzkzNjZlYjYyNWYiLCJzY29wZWRLZXlTZWNyZXQiOiI2NmE5NmE1MDY2NmQzZWVhODZjMTljNDdjYTEyOGJjOGIyMWU2MjYxN2Q1ZGEwZGRjOTFiMWU4ZjU3ZDQ0MmNkIiwiaWF0IjoxNjk3NTEyNjMwfQ.-eUFGsPG0zOZkOcsCxh87uAQ8NBhUf9jG6XsPR3XMhg"
+      Rails.logger.debug("upload_ipfs ipfs deal start")
+      endpoint=ENV['IPFS_PIN_ENDPOINT']
+      str_jwt=ENV['IPFS_PINATA_KEY']
       file_name = "stastus_#{object.id}.json"
       str_json = object.to_json()
-      endpoint = "https://api.pinata.cloud/pinning/"
       uri = URI.parse(endpoint + "pinFileToIPFS")
       boundary = "AaB03x"
       post_body = []
@@ -32,8 +49,8 @@ class IpfsService < BaseService
       post_body << "Content-Type: application/octet-stream\r\n\r\n"
       post_body << str_json
       post_body << "\r\n\r\n--#{boundary}--\r\n"
-       
-      logger.debug("upload_ipfs ipfs deal post request  body: #{post_body}")
+
+      Rails.logger.debug("upload_ipfs ipfs deal post request  body: #{post_body}")
 
 
       # Create the HTTP objects
@@ -54,8 +71,8 @@ class IpfsService < BaseService
         end
       end
 
-    logger.debug("upload_ipfs ipfs deal post response.body: #{body}")
-    logger.debug("upload_ipfs ipfs deal end: #{response.code}")
+      Rails.logger.debug("upload_ipfs ipfs deal post response.body: #{body}")
+      Rails.logger.debug("upload_ipfs ipfs deal end: #{response.code}")
     return cid
   end
 end
