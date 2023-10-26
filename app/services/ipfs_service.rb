@@ -7,9 +7,9 @@ class IpfsDealService < BaseService
   include Sidekiq::Worker
   def call(event, object)
 
-    if event == 'status.update' && !updated_fields(object)
-      return false
-    end
+   # if event == 'status.update' && !updated_fields(object)
+   #   return false
+   # end
 
     logger.debug("IpfsService ipfs  start")
     logger.debug("IpfsService ipfs  deal :#{object.to_json()} ")
