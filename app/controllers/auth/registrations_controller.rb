@@ -9,6 +9,8 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
   layout :determine_layout
 
+  skip_before_action :verify_authenticity_token, only: [:new_pksignup]
+
   before_action :set_invite, only: [:new, :create]
   before_action :check_enabled_registrations, only: [:new, :create]
   before_action :configure_sign_up_params, only: [:create]
@@ -30,12 +32,26 @@ class Auth::RegistrationsController < Devise::RegistrationsController
   end
 
   def new_pksignup
-
-
     logger.info("Params: #{params.inspect}")
-    email=params[:account][:username]+"@gmail.com"
-    user = User.new(email: email,password: Password,settings: params[:account][:username],public_key: params[:public_key])
+    if params[:passkey_label]==""
+      respond_to do |format|
+        format.json { render json: { errors: "passkey label cannot be empty" }, status: 200 }
+      end
+      return
+    end
+    credential=Credential.find_by(label: params[:passkey_label])
+    if credential!=nil
+      respond_to do |format|
+        format.json { render json: { errors: "passkey label already exists" }, status: 200 }
+      end
+      return
+    end
+
+    email=params[:account][:username]+"@xxxx.com"
+    user = User.new(email: email,password: Password,settings: params[:account][:username])
     user.account=Account.new(username: params[:account][:username])
+
+    logger.info("user.to_json:#{user.to_json}")
     create_options = WebAuthn::Credential.options_for_create(
       user: {
         name: params[:account][:username],
@@ -43,10 +59,10 @@ class Auth::RegistrationsController < Devise::RegistrationsController
       },
       authenticator_selection: { user_verification: 'required' },
     )
-    save_registration('challenge' => create_options.challenge, 'user_attributes' => user.to_json)
+    save_registration('challenge' => create_options.challenge, 'user_attributes' => user.to_json,'passkey_attributes' => params[:passkey_label])
     if user.valid?
       hash = {
-        original_url: "/auth/sign_in",
+        original_url: "/",
         callback_url: new_auth_registration_callback_path,
         create_options: create_options
       }
@@ -62,30 +78,33 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
 
   def callback
-    logger.info("params: #{params}")
+    logger.info("params: #{params.to_json}")
     logger.info("saved_user_attribuets: #{saved_user_attribuets}")
 
-    webauthn_credential = WebAuthn::Credential.from_create(params)
+    logger.info("saved_passkey_attribuets: #{saved_passkey_attribuets}")
 
-
-    user_hash = JSON.parse(saved_user_attribuets)
-    user_p = OpenStruct.new(user_hash)
-
-    account=Account.create!(username:user_p[:settings])
-
-    user = User.create!(email: user_p[:email],password:Password,account_id:account.id,public_key: user_p[:public_key])
     begin
+      webauthn_credential = WebAuthn::Credential.from_create(params)
       webauthn_credential.verify(saved_challenge, user_verification: true)
       logger.debug { 'verify worked' }
+      # todo verify api
+      # ###########
+      #
+      user_hash = JSON.parse(saved_user_attribuets)
+      user_p = OpenStruct.new(user_hash)
+      account = Account.create!(username:user_p[:settings])
+      user = User.create!(email: user_p[:email],password:Password,account_id:account.id)
+
       credential = user.credentials.build(
         external_id: external_id(webauthn_credential),
         public_key: webauthn_credential.public_key,
-        sign_count: webauthn_credential.sign_count
+        sign_count: webauthn_credential.sign_count,
+        label: saved_passkey_attribuets,
       )
 
       if credential.save
         logger.debug { 'save worked' }
-
+        sign_in(user)
         render json: { status: 'ok' }, status: :ok
       else
         logger.debug { 'save failed' }
@@ -263,8 +282,15 @@ class Auth::RegistrationsController < Devise::RegistrationsController
     saved_registration['user_attributes']
   end
 
+  def saved_passkey_attribuets
+    saved_registration['passkey_attributes']
+  end
+
   def saved_username
     saved_user_attribuets['username']
+  end
+  def saved_passkey
+    saved_passkey_attribuets['passkey_label']
   end
 
   def saved_challenge

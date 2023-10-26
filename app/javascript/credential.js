@@ -39,12 +39,18 @@ function callback(original_url, callback_url, body) {
   });
 }
 
+
+function clearCookie(cookieName) {
+  document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
+
 function create(data) {
   const { original_url, callback_url, create_options } = data
   const options = WebAuthnJSON.parseCreationOptionsFromJSON({ "publicKey": create_options })
   WebAuthnJSON.create(options).then((credentials) => {
     callback(original_url, callback_url, credentials);
   }).catch(function(error) {
+    clearCookie('_mastodon_session');
     console.log("credential: create error", error);
   });
 
@@ -57,6 +63,7 @@ function get(data) {
   WebAuthnJSON.get(options).then((credentials) => {
     callback(original_url, callback_url, credentials);
   }).catch(function(error) {
+    clearCookie('_mastodon_session');
     console.log("credential: get error", error);
   });
 

@@ -6,6 +6,8 @@ class Auth::SessionsController < Devise::SessionsController
   # include Devise::Passkeys::Controllers::SessionsControllerConcern
   # include RelyingParty
 
+  skip_before_action :verify_authenticity_token, only: [:new_pksignin,:callback]
+
   skip_before_action :require_no_authentication, only: [:create]
   skip_before_action :require_functional!
   skip_before_action :update_user_sign_in
@@ -36,15 +38,15 @@ class Auth::SessionsController < Devise::SessionsController
     end
   end
   def new_pksignin
-    user = User.find_by(public_key: params[:public_key])
+    credential = Credential.find_by(label: params[:passkey_label])
 
-    if user
+    if credential
       get_options = WebAuthn::Credential.options_for_get(
-        allow: user.credentials.pluck(:external_id),
+        allow: credential.external_id,
         user_verification: 'required'
       )
 
-      save_authentication('challenge' => get_options.challenge, 'public_key' => user.public_key)
+      save_authentication('challenge' => get_options.challenge, 'public_key' => credential.public_key)
 
       hash = {
         original_url: "/",
@@ -71,16 +73,15 @@ class Auth::SessionsController < Devise::SessionsController
 
   # POST   /session/callback(.:format)
   def callback
+    logger.info("params: #{params.to_json}")
+
     logger.debug { 'in session#callback' }
 
     webauthn_credential = WebAuthn::Credential.from_get(params)
-
-    user = User.find_by(public_key: saved_public_key)
-
-
+    credential = Credential.find_by(external_id: external_id(webauthn_credential))
+    user = credential.user
     raise "user #{saved_public_key} never initiated sign up" unless user
 
-    credential = user.credentials.find_by(external_id: external_id(webauthn_credential))
 
     begin
 

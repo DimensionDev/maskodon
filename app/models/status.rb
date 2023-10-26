@@ -27,6 +27,7 @@
 #  edited_at                    :datetime
 #  trendable                    :boolean
 #  ordered_media_attachment_ids :bigint(8)        is an Array
+#  cid                          :string
 #
 
 require 'net/http'
@@ -490,11 +491,9 @@ class Status < ApplicationRecord
 
 
   def trigger_create_webhooks
-
     logger.debug("TriggerIpfsWorker ipfs create deal  start")
     TriggerWebhookWorker.perform_async('status.created', 'Status', id) if local?
     logger.debug("TriggerIpfsWorker ipfs create deal  end")
-
   end
 
   def trigger_update_webhooks
@@ -502,5 +501,6 @@ class Status < ApplicationRecord
     TriggerWebhookWorker.perform_async('status.updated', 'Status', id) if local?
     logger.debug("TriggerIpfsWorker ipfs update  deal  end")
   end
+
 
 end

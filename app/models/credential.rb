@@ -9,6 +9,7 @@
 #  sign_count  :bigint(8)
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
+#  label       :string           not null
 #
 class Credential < ApplicationRecord
   validates :external_id, :public_key, :sign_count, presence: true
