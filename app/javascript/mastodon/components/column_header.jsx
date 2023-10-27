@@ -205,7 +205,9 @@ class ColumnHeader extends PureComponent {
         // The container wasn't available, force a re-render so that the
         // component can eventually be inserted in the container and not scroll
         // with the rest of the area.
-        this.forceUpdate();
+        if (location.pathname !== '/auth/sign_in' && location.pathname !== '/auth/sign_up') {
+          this.forceUpdate();
+        }
         return component;
       } else {
         return createPortal(component, container);
