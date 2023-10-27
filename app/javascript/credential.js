@@ -2,7 +2,7 @@ import * as WebAuthnJSON from "@github/webauthn-json/browser-ponyfill"
 import { decode } from 'cbor'
 
 /**
- * Get Publick Key from credentials
+ * Get public key object from credentials
  * @param {WebAuthnJSON.RegistrationPublicKeyCredential} credentials
  */
 function getPublicKeyObject(credentials) {
@@ -36,7 +36,7 @@ function getPublicKeyObject(credentials) {
 }
 
 /**
- * Get Publick Key from credentials
+ * Get client data from credentials
  * @param {WebAuthnJSON.RegistrationPublicKeyCredential} credentials
  * @returns {Object} The object with the following properties:
  * @property {string} challenge - The challenge string.
