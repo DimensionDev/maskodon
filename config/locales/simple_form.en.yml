@@ -185,6 +185,7 @@ en:
         current_password: Current password
         data: Data
         display_name: Display name
+        passkey_label: Passkey label
         email: E-mail address
         expires_in: Expire after
         fields: Extra fields

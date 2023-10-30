@@ -6,8 +6,12 @@ import { IntlMessageFormat }  from 'intl-messageformat';
 import { defineMessages } from 'react-intl';
 
 import { delegate }  from '@rails/ujs';
-import { mainnet , arbitrum } from '@wagmi/core/chains';
-import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi';
+import { createConfig, getAccount , InjectedConnector, configureChains, watchAccount } from '@wagmi/core';
+import { mainnet } from '@wagmi/core/chains';
+import { CoinbaseWalletConnector } from '@wagmi/core/connectors/coinbaseWallet'
+import { WalletConnectConnector } from '@wagmi/core/connectors/walletConnect'
+import { infuraProvider } from '@wagmi/core/providers/infura'
+import { createWeb3Modal, EIP6963Connector } from '@web3modal/wagmi'
 import axios from 'axios';
 import { throttle } from 'lodash';
 
@@ -21,32 +25,19 @@ import ready from '../mastodon/ready';
 
 import 'cocoon-js-vanilla';
 
-
-window.addEventListener('DOMContentLoaded', () => {
-  // 1. Define constants
-  const projectId = 'd7bada49f9ce3d4d430dd39e5c2c48b0';
-
-  // 2. Create wagmiConfig
-  const metadata = {
-    name: 'Web3Modal',
-    description: 'Web3Modal Example',
-    url: 'https://web3modal.com',
-    icons: ['https://avatars.githubusercontent.com/u/37784886']
-  };
-
-  const chains = [mainnet, arbitrum];
-  const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata });
-
-  // 3. Create modal
-  createWeb3Modal({ wagmiConfig, projectId, chains });
-});
-start();
-
 const messages = defineMessages({
   usernameTaken: { id: 'username.taken', defaultMessage: 'That username is taken. Try another' },
   passwordExceedsLength: { id: 'password_confirmation.exceeds_maxlength', defaultMessage: 'Password confirmation exceeds the maximum password length' },
   passwordDoesNotMatch: { id: 'password_confirmation.mismatching', defaultMessage: 'Password confirmation does not match' },
+  signUp: { id: 'auth.register', defaultMessage: 'Sign Up' },
+  connect: { id: 'auth.connect', defaultMessage: 'Connect'}
 });
+
+
+
+
+start();
+
 
 window.addEventListener('message', e => {
   const data = e.data || {};
@@ -211,6 +202,58 @@ function loaded() {
     const message = (statusEl.dataset.spoiler === 'expanded') ? (localeData['status.show_less'] || 'Show less') : (localeData['status.show_more'] || 'Show more');
     spoilerLink.textContent = (new IntlMessageFormat(message, locale)).format();
   });
+
+  let modal = null
+
+  // 1. Define constants
+  const projectId = 'd7bada49f9ce3d4d430dd39e5c2c48b0';
+
+  // 2. Configure wagmi client
+const { chains, publicClient } = configureChains([mainnet],  [infuraProvider({ apiKey: '50676f4e9b9d4780a34fc8a503ff7f4f' })],)
+
+const metadata = {
+  name: 'Web3Modal',
+  description: 'Web3Modal Example',
+  url: 'https://web3modal.com',
+  icons: ['https://avatars.githubusercontent.com/u/37784886']
+}
+
+const wagmiConfig = createConfig({
+  autoConnect: true,
+  connectors: [
+    new WalletConnectConnector({ chains, options: { projectId, showQrModal: false, metadata } }),
+    new EIP6963Connector({ chains }),
+    new InjectedConnector({ chains, options: { shimDisconnect: true } }),
+    new CoinbaseWalletConnector({ chains, options: { appName: metadata.name } })
+  ],
+  publicClient
+})
+  // 3. Create modal
+  modal = createWeb3Modal({ wagmiConfig, projectId, chains });
+
+
+  const account = getAccount()
+  const button = document.getElementById('register-button')
+
+  const openModal = (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+    modal.open()
+  }
+  const listener = (account) => {
+    if(!button) return
+    if(account.isConnected) {
+      button.removeEventListener('click', openModal)
+      button.type = 'submit'
+      button.innerText = formatMessage(messages.signUp)
+    } else {
+      button.innerText = formatMessage(messages.connect)
+      button.addEventListener('click', openModal)
+    }
+  }
+
+  listener(account)
+  watchAccount(listener)
 }
 
 delegate(document, '#edit_profile input[type=file]', 'change', ({ target }) => {
