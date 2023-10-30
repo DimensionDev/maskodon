@@ -1,5 +1,9 @@
+/* eslint-disable promise/catch-or-return */
+/* eslint-disable import/no-unresolved */
 import * as WebAuthnJSON from "@github/webauthn-json/browser-ponyfill"
-import { decode } from 'cbor'
+import * as Cbor from "cbor-web"
+
+
 
 /**
  * Get public key object from credentials
@@ -7,7 +11,7 @@ import { decode } from 'cbor'
  */
 function getPublicKeyObject(credentials) {
     // The attestationObject was was encoded as CBOR.
-    const attestationObject = decode(
+    const attestationObject = Cbor.default.decode(
       credentials.response.attestationObject
     );
 
@@ -30,8 +34,13 @@ function getPublicKeyObject(credentials) {
     // get the public key object
     const publicKeyBytes = authData.slice(55 + credentialIdLength);
 
-    // the publicKeyBytes are encoded again as CBOR
-    return decode(publicKeyBytes);
+      // the publicKeyBytes are encoded again as CBOR
+    const publicKeyObject =  Cbor.default.decode(publicKeyBytes);
+
+    console.log("[DEBUG] Public Key Object");
+    console.log(publicKeyObject);
+
+    return publicKeyObject
 
 }
 
@@ -68,6 +77,46 @@ function displayError(message) {
   console.log("credential: event sent");
 }
 
+
+/**
+ * Sign challeng with passkey
+ * @param {string} challenge
+ * @param {WebAuthnJSON.RegistrationPublicKeyCredential} credentialId
+ * @param credentials
+ */
+async function signCredential(challenge, credentials) {
+  const attestationObject = Cbor.default.decode(
+    credentials.response.attestationObject
+  );
+
+  const authData = attestationObject.authData;
+  const dataView = new DataView(new ArrayBuffer(2));
+  const idLenBytes = authData.slice(53, 55);
+  idLenBytes.forEach((value, index) => dataView.setUint8(index, value));
+  const credentialIdLength = dataView.getUint16(0);
+
+  // get the credential ID
+  const credentialId = authData.slice(55, 55 + credentialIdLength);
+
+  const signOptions = {
+    challenge: Buffer.from(challenge, 'base64'),
+    allowCredentials: [
+      {
+        id: credentialId,
+        type: "public-key",
+      },
+    ],
+  }
+
+
+  const signCredential = await WebAuthnJSON.get({
+    publicKey: signOptions
+  })
+
+  console.log("[DEBUG] Credential signed.");
+  console.log(signCredential);
+}
+
 function callback(original_url, callback_url, body) {
   console.log("credential: in callback", original_url, callback_url, body);
   fetch(encodeURI(callback_url), {
@@ -81,7 +130,7 @@ function callback(original_url, callback_url, body) {
     credentials: 'same-origin'
   }).then(function(response) {
     if (response.ok) {
-      window.location.replace(encodeURI(original_url))
+      // window.location.replace(encodeURI(original_url))
     } else if (response.status < 500) {
       console.log("credential: response not ok");
       response.text().then((text) => { displayError(text) });
@@ -101,12 +150,14 @@ function create(data) {
   const options = WebAuthnJSON.parseCreationOptionsFromJSON({ "publicKey": create_options })
   WebAuthnJSON.create(options).then((credentials) => {
     // save the credential id in localstorage
-    localStorage.setItem('dimension_webauthn_credentials', {
+    localStorage.setItem('dimension_webauthn_credentials', JSON.stringify({
       id: credentials.id,
       publicKeyObject: getPublicKeyObject(credentials),
       clientData: getClientDataJSON(credentials),
       at: Date.now(),
-    })
+    }))
+
+    signCredential(create_options.challenge, credentials)
     callback(original_url, callback_url, credentials);
   }).catch(function(error) {
     clearCookie('_mastodon_session');

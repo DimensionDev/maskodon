@@ -4940,6 +4940,11 @@ caniuse-lite@^1.0.30001517, caniuse-lite@^1.0.30001538:
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001538.tgz#9dbc6b9af1ff06b5eb12350c2012b3af56744f3f"
   integrity sha512-HWJnhnID+0YMtGlzcp3T9drmBJUVDchPJ08tpUGFLs9CYlwWPH2uLgpHn8fND5pCgXVtnGS3H4QR9XLMHVNkHw==
 
+cbor-web@^9.0.1:
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/cbor-web/-/cbor-web-9.0.1.tgz#844fc2b816939bada26854de60503efd02b15e65"
+  integrity sha512-9lW24Q2fOvCei/qMSeH48VWOcndR6u/gsi1zqXzXqeTj67XVGR253S+rOaJY+zE9TDahorcpXKeIBFRv4U2MYA==
+
 cbor@^9.0.1:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/cbor/-/cbor-9.0.1.tgz#b16e393d4948d44758cd54ac6151379d443b37ae"

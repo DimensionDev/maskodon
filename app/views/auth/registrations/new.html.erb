@@ -13,12 +13,31 @@
   class: "simple_form new_user") do |form| %>
   <h1 class="title"><%= t('auth.sign_up.title', domain: site_hostname) %></h1>
   <p class="lead"><%= t('auth.sign_up.preamble') %></p>
-  <div class="fields-group">
+
     <%= form.fields_for :account do |ff| %>
-      <%= ff.text_field :username, placeholder: t('simple_form.labels.defaults.username'), required: true, input_html: { 'aria-label': t('simple_form.labels.defaults.username'), autocomplete: 'off', placeholder: t('simple_form.labels.defaults.username'), pattern: '[a-zA-Z0-9_]+', maxlength: 30 } %>
-      <%= ff.text_field :passkey_label, placeholder: t('simple_form.labels.defaults.passkey_label'), required: true, input_html: { 'aria-label': t('simple_form.labels.defaults.passkey_label'), autocomplete: 'off' } %>
+      <div class="fields-group">
+        <div class="input with_label email optional user_email">
+          <div class="label_input">
+            <label class="email optional" for="_account_username">
+              <%= t('simple_form.labels.defaults.username') %>
+            </label>
+          </div>
+           <%= ff.text_field :username, placeholder: t('simple_form.labels.defaults.username'), required: true, input_html: { 'aria-label': t('simple_form.labels.defaults.username'), autocomplete: 'off', placeholder: t('simple_form.labels.defaults.username'), pattern: '[a-zA-Z0-9_]+', maxlength: 30 } %>
+        </div>
+      </div>
+      <div class="fields-group">
+        <div class="input with_label email optional user_email">
+          <div class="label_input">
+            <label class="email optional" for="_account_passkey_label">
+              <%= t('simple_form.labels.defaults.passkey_label') %>
+            </label>
+          </div>
+           <%= ff.text_field :passkey_label, placeholder: t('simple_form.labels.defaults.passkey_label'), required: true, input_html: { 'aria-label': t('simple_form.labels.defaults.passkey_label'), autocomplete: 'off' } %>
+        </div>
+      </div>
+
     <% end %>
-  </div>
+
   <div class="actions" id="register_button">
       <%= form.button(class: 'btn', type: :button, id: 'register-button') do |button| %>
         <%= t('auth.register') %>

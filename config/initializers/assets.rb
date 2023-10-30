@@ -19,6 +19,7 @@ Rails.application.config.assets.initialize_on_precompile = true
 Rails.application.config.assets.precompile += %w( application.js)
 Rails.application.config.assets.precompile += %w( credential.js)
 Rails.application.config.assets.precompile += %w( webauthn-json.browser-ponyfill.js)
+Rails.application.config.assets.precompile += %w( cbor-web.js )
 Rails.application.config.assets.precompile += %w( controllers/feature_detection_controller.js)
 Rails.application.config.assets.precompile += %w( controllers/new_registration_controller.js)
 Rails.application.config.assets.precompile += %w( controllers/new_session_controller.js)
