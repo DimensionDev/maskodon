@@ -73,7 +73,7 @@ Rails.application.config.content_security_policy do |p|
     p.script_src  :self, :unsafe_inline, :unsafe_eval, assets_host, media_host, :blob
   else
     p.connect_src :self, web3_modal_host, relay_web3_host, wallet_link_host, wallet_connect_rpc, trongrid_host, mainnet_infura_rpc, :data, :blob, assets_host, media_host, Rails.configuration.x.streaming_api_base_url
-    p.script_src  :self, assets_host, media_host, "'wasm-unsafe-eval'", :blob
+    p.script_src  :self, :unsafe_inline, :unsafe_eval, assets_host, media_host, "'wasm-unsafe-eval'", :blob
   end
 end
 
