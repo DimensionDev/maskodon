@@ -9,5 +9,4 @@ pin_all_from "app/javascript/controllers", under: "controllers"
 
 
 pin "@github/webauthn-json/browser-ponyfill", to: "webauthn-json.browser-ponyfill.js"
-
-
+pin "cbor-web" # @9.0.1

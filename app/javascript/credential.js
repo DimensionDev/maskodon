@@ -1,4 +1,65 @@
+/* eslint-disable promise/catch-or-return */
+/* eslint-disable import/no-unresolved */
 import * as WebAuthnJSON from "@github/webauthn-json/browser-ponyfill"
+import * as Cbor from "cbor-web"
+
+
+
+/**
+ * Get public key object from credentials
+ * @param {WebAuthnJSON.RegistrationPublicKeyCredential} credentials
+ */
+function getPublicKeyObject(credentials) {
+    // The attestationObject was was encoded as CBOR.
+    const attestationObject = Cbor.default.decode(
+      credentials.response.attestationObject
+    );
+
+    const authData = attestationObject.authData;
+    const dataView = new DataView(new ArrayBuffer(2));
+    const idLenBytes = authData.slice(53, 55);
+    idLenBytes.forEach((value, index) => dataView.setUint8(index, value));
+    const credentialIdLength = dataView.getUint16(0);
+
+    // get the credential ID
+    const credentialId = authData.slice(55, 55 + credentialIdLength);
+
+    // validate the credential ID
+    if (
+      Buffer.from(credentialId).toString("base64") !==
+      Buffer.from(credentials.rawId).toString("base64")
+    )
+      throw new Error("Invalid credential ID");
+
+    // get the public key object
+    const publicKeyBytes = authData.slice(55 + credentialIdLength);
+
+      // the publicKeyBytes are encoded again as CBOR
+    const publicKeyObject =  Cbor.default.decode(publicKeyBytes);
+
+    console.log("[DEBUG] Public Key Object");
+    console.log(publicKeyObject);
+
+    return publicKeyObject
+
+}
+
+/**
+ * Get client data from credentials
+ * @param {WebAuthnJSON.RegistrationPublicKeyCredential} credentials
+ * @returns {Object} The object with the following properties:
+ * @property {string} challenge - The challenge string.
+ * @property {boolean} crossOrigin - Whether the request is cross-origin (false in this case).
+ * @property {string} origin - The origin URL.
+ * @property {string} type - 'webauthn.create' | 'webauthn.get'
+ */
+function getClientDataJSON(credentials) {
+  const decoder = new TextDecoder("utf-8");
+
+  return JSON.parse(
+    decoder.decode(credentials.response.clientDataJSON)
+  )
+}
 
 function getCSRFToken() {
   var CSRFSelector = document.querySelector('meta[name="csrf-token"]')
@@ -16,6 +77,46 @@ function displayError(message) {
   console.log("credential: event sent");
 }
 
+
+/**
+ * Sign challeng with passkey
+ * @param {string} challenge
+ * @param {WebAuthnJSON.RegistrationPublicKeyCredential} credentialId
+ * @param credentials
+ */
+async function signCredential(challenge, credentials) {
+  const attestationObject = Cbor.default.decode(
+    credentials.response.attestationObject
+  );
+
+  const authData = attestationObject.authData;
+  const dataView = new DataView(new ArrayBuffer(2));
+  const idLenBytes = authData.slice(53, 55);
+  idLenBytes.forEach((value, index) => dataView.setUint8(index, value));
+  const credentialIdLength = dataView.getUint16(0);
+
+  // get the credential ID
+  const credentialId = authData.slice(55, 55 + credentialIdLength);
+
+  const signOptions = {
+    challenge: Buffer.from(challenge, 'base64'),
+    allowCredentials: [
+      {
+        id: credentialId,
+        type: "public-key",
+      },
+    ],
+  }
+
+
+  const signCredential = await WebAuthnJSON.get({
+    publicKey: signOptions
+  })
+
+  console.log("[DEBUG] Credential signed.");
+  console.log(signCredential);
+}
+
 function callback(original_url, callback_url, body) {
   console.log("credential: in callback", original_url, callback_url, body);
   fetch(encodeURI(callback_url), {
@@ -29,7 +130,7 @@ function callback(original_url, callback_url, body) {
     credentials: 'same-origin'
   }).then(function(response) {
     if (response.ok) {
-      window.location.replace(encodeURI(original_url))
+      // window.location.replace(encodeURI(original_url))
     } else if (response.status < 500) {
       console.log("credential: response not ok");
       response.text().then((text) => { displayError(text) });
@@ -48,6 +149,15 @@ function create(data) {
   const { original_url, callback_url, create_options } = data
   const options = WebAuthnJSON.parseCreationOptionsFromJSON({ "publicKey": create_options })
   WebAuthnJSON.create(options).then((credentials) => {
+    // save the credential id in localstorage
+    localStorage.setItem('dimension_webauthn_credentials', JSON.stringify({
+      id: credentials.id,
+      publicKeyObject: getPublicKeyObject(credentials),
+      clientData: getClientDataJSON(credentials),
+      at: Date.now(),
+    }))
+
+    signCredential(create_options.challenge, credentials)
     callback(original_url, callback_url, credentials);
   }).catch(function(error) {
     clearCookie('_mastodon_session');
