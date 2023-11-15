@@ -1,5 +1,5 @@
 [production]
-defaults
+chrome > 79
 not IE 11
 not dead
 
