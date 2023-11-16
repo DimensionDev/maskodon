@@ -3,7 +3,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 
-class IpfsDealService < BaseService
+class IpfsService < BaseService
   include Sidekiq::Worker
   def call(event, object)
 
@@ -37,7 +37,7 @@ class IpfsDealService < BaseService
   def upload_ipfs(object)
       Rails.logger.debug("upload_ipfs ipfs deal start")
       endpoint=ENV['IPFS_PIN_ENDPOINT']
-      str_jwt=ENV['IPFS_PINATA_KEY']
+      str_jwt=ENV['PINATA_KEY']
       file_name = "stastus_#{object.id}.json"
       str_json = object.to_json()
       uri = URI.parse(endpoint + "pinFileToIPFS")

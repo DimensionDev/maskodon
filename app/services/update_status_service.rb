@@ -37,7 +37,7 @@ class UpdateStatusService < BaseService
     update_metadata!
     broadcast_updates!
      Rails.logger.debug("UpdateStatusService ipfs update  deal  start")
-    IpfsDealService.new.call('status.updated',@status)
+    IpfsService.new.call('status.updated',@status)
     Rails.logger.debug("UpdateStatusService ipfs update  deal  end")
     @status
   rescue NoChangesSubmittedError
