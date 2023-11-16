@@ -1,5 +1,6 @@
 import { defineMessages } from 'react-intl';
 
+import * as WebAuthnJSON from "@github/webauthn-json/browser-ponyfill"
 import axios from 'axios';
 import { throttle } from 'lodash';
 
@@ -708,7 +709,7 @@ function insertIntoTagHistory(recognizedTags, text) {
   };
 }
 
-const parseJSON = (data) => {
+function parseJSON(data) {
   try {
     return JSON.parse(data)
   } catch {
@@ -716,9 +717,73 @@ const parseJSON = (data) => {
   }
 }
 
+async function signWithCredential(payload, credentialId) {
+  const signOptions = {
+    challenge: Buffer.from(payload, 'utf8'),
+    allowCredentials: [
+      {
+        id: credentialId,
+        type: "public-key",
+      },
+    ],
+  }
+
+  const signedCredential = await WebAuthnJSON.get({
+    publicKey: signOptions
+  })
+
+  console.log("[DEBUG] Credential signed.");
+  console.log(signedCredential);
+
+  return signedCredential
+}
+
+function getPayloadForUpdating(avatar, patch) {
+  return fetch('https://kv-service.nextnext.id/v1/kv/payload', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      avatar,
+      identity: avatar,
+      platform: 'nextid',
+      patch,
+    })
+  })
+}
+
+function applyPatch(avatar, payload, patch, signature) {
+  return fetch('https://kv-service.nextnext.id/v1/kv', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      avatar,
+      platform: 'nextid',
+      identity: avatar,
+      uuid: payload.uuid,
+      created_at: payload.created_at,
+      signature,
+      patch,
+    }),
+  })
+}
+
 async function savePostToKV(response) {
   const credentials = parseJSON(localStorage.getItem('dimension_webauthn_credentials'))
   if (!credentials?.id) throw new Error('No credential found.')
+
+  const patch = {
+    [response.data.id]: {
+      text: 'This is a demo post.'
+    }
+  }
+  const payload = await getPayloadForUpdating(credentials.avatar, patch)
+  const signature = await signWithCredential(payload, credentials.id)
+
+  await applyPatch(credentials.avatar, payload, signature)
 
   return response
 }
