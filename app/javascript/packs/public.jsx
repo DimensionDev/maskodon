@@ -266,9 +266,17 @@ document.addEventListener('documentRequest', async (event) => {
     }
   }
 
-  document.dispatchEvent(new CustomEvent('signPayloadResponse', {
-    detail: await handle(event.detail.type, event.detail.requestArguments)
-  }))
+  try {
+    document.dispatchEvent(new CustomEvent('documentResponse', {
+      detail: await handle(event.detail.type, event.detail.requestArguments)
+    }))
+  } catch (error) {
+    document.dispatchEvent(new CustomEvent('documentResponse', {
+      detail: {
+        reason: error instanceof Error ? error.message : 'Unknown Error',
+      }
+    }))
+  }
 })
 
 delegate(document, '#edit_profile input[type=file]', 'change', ({ target }) => {
