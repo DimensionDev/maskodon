@@ -33,13 +33,22 @@ function getPublicKeyInHex(credentials) {
     const publicKeyBytes = authData.slice(55 + credentialIdLength);
 
       // the publicKeyBytes are encoded again as CBOR
-    const publicKeyObject =  Cbor.default.decode(publicKeyBytes);
+    const publicKeyObject = Cbor.default.decode(publicKeyBytes);
 
     console.log("[DEBUG] Public Key Object");
     console.log(publicKeyObject);
 
-    return publicKeyObject
+    const kty = publicKeyObject.get(1);
+    const alg = publicKeyObject.get(3);
 
+    // ES256
+    if (kty === 2 && alg === -7) {
+      const x = Buffer.from(publicKeyObject.get(-2)).toString('hex');
+      const y = Buffer.from(publicKeyObject.get(-3)).toString('hex');
+      return `0x${x}${y}`
+    } else {
+      throw new Error('Not supported key algorithm.')
+    }
 }
 
 function getCSRFToken() {
@@ -121,4 +130,3 @@ function get(data) {
 }
 
 export { create, get, displayError }
-
