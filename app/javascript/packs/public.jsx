@@ -13,7 +13,7 @@ import { WalletConnectConnector } from '@wagmi/core/connectors/walletConnect'
 import { infuraProvider } from '@wagmi/core/providers/infura'
 import { createWeb3Modal, EIP6963Connector } from '@web3modal/wagmi'
 import axios from 'axios';
-import { ecrecover } from 'ethereumjs-util'
+import { ecrecover, fromRpcSig, keccak256 } from 'ethereumjs-util'
 import { throttle } from 'lodash';
 
 import { start } from '../mastodon/common';
@@ -257,16 +257,20 @@ function loaded() {
           const account = getAccount()
           if (!account.isConnected) throw new Error('Please connect a wallet first.')
 
+
+
+          const message =  'This is a greeting message for testing only.'
           const signature = await signMessage({
-            message: 'This is a greeting message for testing only.'
+            message: message,
           })
 
-          const signatureInBuffer = Buffer.from(signature.slice(2), 'hex');
-          const r = signatureInBuffer.slice(0, 32);
-          const s = signatureInBuffer.slice(32, 64);
-          const v = signatureInBuffer[64];
+          const response = fromRpcSig(signature)
 
-          return `0x${ecrecover(Buffer.from(signature, 'hex'), { r, s, v}).toString('hex')}`
+          const prefix = new Buffer('\x19Ethereum Signed Message:\n')
+          const messageBuffer = Buffer.concat([prefix, new Buffer(String(message.length)), new Buffer(message)])
+          const prefixedMsg = keccak256(messageBuffer)
+
+          return `0x${ecrecover(prefixedMsg, response.v, response.r, response.s).toString('hex')}`
         case 'sign_payload':
             return signMessage({
               message: requestArguments,
