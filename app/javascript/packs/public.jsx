@@ -15,6 +15,7 @@ import { createWeb3Modal, EIP6963Connector } from '@web3modal/wagmi'
 import axios from 'axios';
 import { ecrecover, fromRpcSig, keccak256 } from 'ethereumjs-util'
 import { throttle } from 'lodash';
+import { Convert } from 'pvtsutils';
 
 import { start } from '../mastodon/common';
 import { timeAgoString }  from '../mastodon/components/relative_timestamp';
@@ -269,12 +270,15 @@ function loaded() {
           const prefix = new Buffer('\x19Ethereum Signed Message:\n')
           const messageBuffer = Buffer.concat([prefix, new Buffer(String(message.length)), new Buffer(message)])
           const prefixedMsg = keccak256(messageBuffer)
+          const publicKey = ecrecover(prefixedMsg, response.v, response.r, response.s).toString('hex')
 
-          return `0x${ecrecover(prefixedMsg, response.v, response.r, response.s).toString('hex')}`
+          return '0x04' + publicKey
         case 'sign_payload':
-            return signMessage({
+            const sign = await signMessage({
               message: requestArguments,
             })
+            const hexBuffer = new Uint8Array(Convert.FromHex(sign.slice(2)))
+            return Convert.ToBase64(hexBuffer)
         default:
           throw new Error(`Unknown event type: ${type}`)
       }
