@@ -39,7 +39,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
       end
       return
     end
-    credential=Credential.find_by(label: params[:passkey_label])
+    credential=Credential.find_by(label: params[:account][:passkey_label])
     if credential!=nil
       respond_to do |format|
         format.json { render json: { errors: "passkey label already exists" }, status: 200 }
@@ -59,7 +59,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
       },
       authenticator_selection: { user_verification: 'required' },
     )
-    save_registration('challenge' => create_options.challenge, 'user_attributes' => user.to_json,'passkey_attributes' => params[:passkey_label])
+    save_registration('challenge' => create_options.challenge, 'user_attributes' => user.to_json,'passkey_attributes' => params[:account][:passkey_label])
     if user.valid?
       hash = {
         original_url: "/",
