@@ -250,22 +250,25 @@ function loaded() {
   watchAccount(listener)
 }
 
-document.addEventListener('signPayloadRequest', (event) => {
-  signMessage({
-    message: event.detail.payload
-  }).then((signature) => {
-    document.dispatchEvent(new CustomEvent('signPayloadResponse', {
-      detail: {
-        signature
+document.addEventListener('documentRequest', async (event) => {
+  const handle = (type, requestArguments) => {
+    switch (type) {
+      case 'get_avatar':
+        return '0x'
+      case 'sign_payload':
+        {
+          return signMessage({
+            message: requestArguments,
+          })
       }
-    }))
-  }).catch((error) => {
-    document.dispatchEvent(new CustomEvent('signPayloadResponse', {
-      detail: {
-        reason: error.message
-      }
-    }))
-  })
+      default:
+        throw new Error(`Unknown event type: ${type}`)
+    }
+  }
+
+  document.dispatchEvent(new CustomEvent('signPayloadResponse', {
+    detail: await handle(event.detail.type, event.detail.requestArguments)
+  }))
 })
 
 delegate(document, '#edit_profile input[type=file]', 'change', ({ target }) => {

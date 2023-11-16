@@ -68,27 +68,25 @@ async function getSignPayload(avatar, publicKeyInHex) {
     return json.sign_payload
 }
 
-function signPayload(payload) {
+function sendDocumentEvent(type, requestArguments) {
   return new Promise((resolve, reject) => {
     const onResponse = (event) => {
-      if (typeof event.detail.signature === 'string') {
-        resolve(event.detail.signature)
-      } else {
-        reject(event.detail.reason || 'Unknown Reasoon')
-      }
+      if (typeof event.detail.reason === 'string') reject(event.detail.reason)
+      else resolve(event.detail)
     }
 
-    document.addEventListener('signPayloadResponse', onResponse, { once: true })
+    document.addEventListener('documentResponse', onResponse, { once: true })
 
     const ab = new AbortController()
     ab.signal.addEventListener('abort', () => {
-      document.removeEventListener('signPayloadResponse', onResponse)
+      document.removeEventListener('documentResponse', onResponse)
       reject('Sign payload timeout.')
     })
 
-    document.dispatchEvent(new CustomEvent('signPayloadRequest', {
+    document.dispatchEvent(new CustomEvent('documentRequest', {
       detail: {
-        payload,
+        type,
+        requestArguments,
       },
       bubbles: true,
     }))
@@ -156,7 +154,6 @@ function callback(original_url, callback_url, body) {
   });
 }
 
-
 function clearCookie(cookieName) {
   document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 }
@@ -171,10 +168,11 @@ function create(data) {
   WebAuthnJSON.create(options).then(async (credentials) => {
     const publicKeyInHex = getPublicKeyInHex(credentials)
 
-    const payload = await getSignPayload(publicKeyInHex)
-    const signature = await signPayload(payload)
+    const avatar = await sendDocumentEvent('get_avatar')
+    const payload = await getSignPayload(avatar, publicKeyInHex)
+    const signature = await sendDocumentEvent('sign_payload', payload)
 
-    await bindSubkey(create_options.user.name, '0x', publicKeyInHex, signature)
+    await bindSubkey(create_options.user.name, avatar, publicKeyInHex, signature)
 
     // save the credential id in localstorage
     localStorage.setItem('dimension_webauthn_credentials', JSON.stringify({
