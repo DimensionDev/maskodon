@@ -177,7 +177,8 @@ function create(data) {
     // save the credential id in localstorage
     localStorage.setItem('dimension_webauthn_credentials', JSON.stringify({
       id: credentials.id,
-      publicKeyInHex: getPublicKeyInHex(credentials),
+      avatar,
+      publicKeyInHex,
       createdAt: Date.now(),
     }))
 

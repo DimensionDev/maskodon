@@ -257,7 +257,8 @@ document.addEventListener('documentRequest', async (event) => {
       case 'get_avatar':
         const account = getAccount()
         if (!account.isConnected) throw new Error('Not connected.')
-        return `0x${keccak256(account).slice(-20)}`
+        // FIXME: how to retrive avatar from an EVM address?
+        return keccak256(account)
       case 'sign_payload':
         {
           return signMessage({
@@ -322,7 +323,6 @@ delegate(document, '.input-copy button', 'click', ({ target }) => {
   input.readonly = oldReadOnly;
 });
 
-
 const toggleSidebar = () => {
   const sidebar = document.querySelector('.sidebar ul');
   const toggleButton = document.querySelector('.sidebar__toggle__icon');
@@ -363,7 +363,6 @@ delegate(document, '#registration_new_user,#new_user', 'submit', () => {
     }
   });
 });
-
 
 function main() {
   ready(loaded);
