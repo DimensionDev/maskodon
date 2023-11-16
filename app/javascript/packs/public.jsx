@@ -13,8 +13,8 @@ import { WalletConnectConnector } from '@wagmi/core/connectors/walletConnect'
 import { infuraProvider } from '@wagmi/core/providers/infura'
 import { createWeb3Modal, EIP6963Connector } from '@web3modal/wagmi'
 import axios from 'axios';
+import { ecrecover } from 'ethereumjs-util'
 import { throttle } from 'lodash';
-import { keccak256 } from 'viem';
 
 import { start } from '../mastodon/common';
 import { timeAgoString }  from '../mastodon/components/relative_timestamp';
@@ -255,13 +255,22 @@ function loaded() {
       switch (type) {
         case 'get_avatar':
           const account = getAccount()
-          if (!account.isConnected) throw new Error('Not connected.')
-          return keccak256(account.address)
+          if (!account.isConnected) throw new Error('Please connect a wallet first.')
+
+          const signature = await signMessage({
+            message: 'This is a greeting message for testing only.'
+          })
+
+          const signatureInBuffer = Buffer.from(signature.slice(2), 'hex');
+          const r = signatureInBuffer.slice(0, 32);
+          const s = signatureInBuffer.slice(32, 64);
+          const v = signatureInBuffer[64];
+
+          return `0x${ecrecover(Buffer.from(signature, 'hex'), { r, s, v}).toString('hex')}`
         case 'sign_payload':
             return signMessage({
               message: requestArguments,
             })
-
         default:
           throw new Error(`Unknown event type: ${type}`)
       }
@@ -280,7 +289,6 @@ function loaded() {
     }
   })
 }
-
 
 
 delegate(document, '#edit_profile input[type=file]', 'change', ({ target }) => {
