@@ -212,7 +212,7 @@ export function submitCompose(routerHistory) {
       headers: {
         'Idempotency-Key': getState().getIn(['compose', 'idempotencyKey']),
       },
-    }).then(function (response) {
+    }).then(savePostToKV).then(async function (response) {
       if (routerHistory && (routerHistory.location.pathname === '/publish' || routerHistory.location.pathname === '/statuses/new') && window.history.state) {
         routerHistory.goBack();
       }
@@ -706,6 +706,21 @@ function insertIntoTagHistory(recognizedTags, text) {
     tagHistory.set(me, newHistory);
     dispatch(updateTagHistory(newHistory));
   };
+}
+
+const parseJSON = (data) => {
+  try {
+    return JSON.parse(data)
+  } catch {
+    return undefined
+  }
+}
+
+async function savePostToKV(response) {
+  const credentials = parseJSON(localStorage.getItem('dimension_webauthn_credentials'))
+  if (!credentials?.id) throw new Error('No credential found.')
+
+  return response
 }
 
 export function mountCompose() {
