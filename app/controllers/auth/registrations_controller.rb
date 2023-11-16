@@ -33,7 +33,7 @@ class Auth::RegistrationsController < Devise::RegistrationsController
 
   def new_pksignup
     logger.info("Params: #{params.inspect}")
-    if params[:passkey_label]==""
+    if params[:account][:passkey_label]==""
       respond_to do |format|
         format.json { render json: { errors: "passkey label cannot be empty" }, status: 200 }
       end
