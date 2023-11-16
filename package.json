@@ -141,6 +141,7 @@
     "tiny-queue": "^0.2.1",
     "twitter-text": "3.1.0",
     "uuid": "^9.0.0",
+    "viem": "^1.19.3",
     "webpack": "^4.47.0",
     "webpack-assets-manifest": "^4.0.6",
     "webpack-bundle-analyzer": "^4.8.0",

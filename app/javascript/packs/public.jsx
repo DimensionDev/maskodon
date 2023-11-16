@@ -14,6 +14,7 @@ import { infuraProvider } from '@wagmi/core/providers/infura'
 import { createWeb3Modal, EIP6963Connector } from '@web3modal/wagmi'
 import axios from 'axios';
 import { throttle } from 'lodash';
+import { keccak256 } from 'viem'
 
 import { start } from '../mastodon/common';
 import { timeAgoString }  from '../mastodon/components/relative_timestamp';
@@ -254,7 +255,9 @@ document.addEventListener('documentRequest', async (event) => {
   const handle = (type, requestArguments) => {
     switch (type) {
       case 'get_avatar':
-        return '0x'
+        const account = getAccount()
+        if (!account.isConnected) throw new Error('Not connected.')
+        return `0x${keccak256(account).slice(-20)}`
       case 'sign_payload':
         {
           return signMessage({
