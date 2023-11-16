@@ -38,7 +38,7 @@ class Auth::SessionsController < Devise::SessionsController
     end
   end
   def new_pksignin
-    credential = Credential.find_by(label: params[:passkey_label])
+    credential = Credential.find_by(label: params[:account][:passkey_label])
 
     if credential
       get_options = WebAuthn::Credential.options_for_get(
