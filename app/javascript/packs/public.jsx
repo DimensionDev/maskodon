@@ -6,7 +6,7 @@ import { IntlMessageFormat }  from 'intl-messageformat';
 import { defineMessages } from 'react-intl';
 
 import { delegate }  from '@rails/ujs';
-import { createConfig, getAccount , InjectedConnector, configureChains, watchAccount } from '@wagmi/core';
+import { createConfig, getAccount , InjectedConnector, configureChains, watchAccount, signMessage } from '@wagmi/core';
 import { mainnet } from '@wagmi/core/chains';
 import { CoinbaseWalletConnector } from '@wagmi/core/connectors/coinbaseWallet'
 import { WalletConnectConnector } from '@wagmi/core/connectors/walletConnect'
@@ -33,11 +33,7 @@ const messages = defineMessages({
   connect: { id: 'auth.connect', defaultMessage: 'Connect'}
 });
 
-
-
-
 start();
-
 
 window.addEventListener('message', e => {
   const data = e.data || {};
@@ -203,34 +199,32 @@ function loaded() {
     spoilerLink.textContent = (new IntlMessageFormat(message, locale)).format();
   });
 
-  let modal = null
-
   // 1. Define constants
   const projectId = 'd7bada49f9ce3d4d430dd39e5c2c48b0';
 
   // 2. Configure wagmi client
-const { chains, publicClient } = configureChains([mainnet],  [infuraProvider({ apiKey: '50676f4e9b9d4780a34fc8a503ff7f4f' })],)
+  const { chains, publicClient } = configureChains([mainnet],  [infuraProvider({ apiKey: '50676f4e9b9d4780a34fc8a503ff7f4f' })],)
 
-const metadata = {
-  name: 'Web3Modal',
-  description: 'Web3Modal Example',
-  url: 'https://web3modal.com',
-  icons: ['https://avatars.githubusercontent.com/u/37784886']
-}
+  const metadata = {
+    name: 'Web3Modal',
+    description: 'Web3Modal Example',
+    url: 'https://web3modal.com',
+    icons: ['https://avatars.githubusercontent.com/u/37784886']
+  }
 
-const wagmiConfig = createConfig({
-  autoConnect: true,
-  connectors: [
-    new WalletConnectConnector({ chains, options: { projectId, showQrModal: false, metadata } }),
-    new EIP6963Connector({ chains }),
-    new InjectedConnector({ chains, options: { shimDisconnect: true } }),
-    new CoinbaseWalletConnector({ chains, options: { appName: metadata.name } })
-  ],
-  publicClient
-})
+  const wagmiConfig = createConfig({
+    autoConnect: true,
+    connectors: [
+      new WalletConnectConnector({ chains, options: { projectId, showQrModal: false, metadata } }),
+      new EIP6963Connector({ chains }),
+      new InjectedConnector({ chains, options: { shimDisconnect: true } }),
+      new CoinbaseWalletConnector({ chains, options: { appName: metadata.name } })
+    ],
+    publicClient
+  })
+
   // 3. Create modal
-  modal = createWeb3Modal({ wagmiConfig, projectId, chains });
-
+  const modal = createWeb3Modal({ wagmiConfig, projectId, chains });
 
   const account = getAccount()
   const button = document.getElementById('register-button')
@@ -255,6 +249,24 @@ const wagmiConfig = createConfig({
   listener(account)
   watchAccount(listener)
 }
+
+document.addEventListener('signPayloadRequest', (event) => {
+  signMessage({
+    message: event.detail.payload
+  }).then((signature) => {
+    document.dispatchEvent(new CustomEvent('signPayloadResponse', {
+      detail: {
+        signature
+      }
+    }))
+  }).catch((error) => {
+    document.dispatchEvent(new CustomEvent('signPayloadResponse', {
+      detail: {
+        reason: error.message
+      }
+    }))
+  })
+})
 
 delegate(document, '#edit_profile input[type=file]', 'change', ({ target }) => {
   const avatar = document.getElementById(target.id + '-preview');
@@ -295,6 +307,7 @@ delegate(document, '.input-copy button', 'click', ({ target }) => {
 
   input.readonly = oldReadOnly;
 });
+
 
 const toggleSidebar = () => {
   const sidebar = document.querySelector('.sidebar ul');

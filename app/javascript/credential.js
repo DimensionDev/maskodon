@@ -51,6 +51,71 @@ function getPublicKeyInHex(credentials) {
     }
 }
 
+async function getSignPayload(avatar, publicKeyInHex) {
+  const response = await fetch('https://proof-service.nextnext.id/v1/subkey/payload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        avatar,
+        algorighm: 'es256',
+        public_key: publicKeyInHex,
+        rp_id: 'mastodon.firefly.land',
+      })
+    })
+    const json = await response.json()
+    return json.sign_payload
+}
+
+function signPayload(payload) {
+  return new Promise((resolve, reject) => {
+    const onResponse = (event) => {
+      if (typeof event.detail.signature === 'string') {
+        resolve(event.detail.signature)
+      } else {
+        reject(event.detail.reason || 'Unknown Reasoon')
+      }
+    }
+
+    document.addEventListener('signPayloadResponse', onResponse, { once: true })
+
+    const ab = new AbortController()
+    ab.signal.addEventListener('abort', () => {
+      document.removeEventListener('signPayloadResponse', onResponse)
+      reject('Sign payload timeout.')
+    })
+
+    document.dispatchEvent(new CustomEvent('signPayloadRequest', {
+      detail: {
+        payload,
+      },
+      bubbles: true,
+    }))
+
+    // timeout for 3 minutes
+    setTimeout(() => ab.abort(), 3 * 60 * 1000)
+  })
+}
+
+async function bindSubkey(name, avatar, publicKeyInHex, signature) {
+  const response = await fetch('https://proof-service.nextnext.id/v1/subkey', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      avatar,
+      algorithm: 'es256',
+      public_key: publicKeyInHex,
+      rp_id: 'mastodon.firefly.land',
+      name,
+      signature,
+    })
+  })
+  return response.json()
+}
+
 function getCSRFToken() {
   var CSRFSelector = document.querySelector('meta[name="csrf-token"]')
   if (CSRFSelector) {
@@ -98,8 +163,19 @@ function clearCookie(cookieName) {
 
 function create(data) {
   const { original_url, callback_url, create_options } = data
+
+  console.log('DEBUG: create options')
+  console.log(data)
+
   const options = WebAuthnJSON.parseCreationOptionsFromJSON({ "publicKey": create_options })
-  WebAuthnJSON.create(options).then((credentials) => {
+  WebAuthnJSON.create(options).then(async (credentials) => {
+    const publicKeyInHex = getPublicKeyInHex(credentials)
+
+    const payload = await getSignPayload(publicKeyInHex)
+    const signature = await signPayload(payload)
+
+    await bindSubkey(create_options.user.name, '0x', publicKeyInHex, signature)
+
     // save the credential id in localstorage
     localStorage.setItem('dimension_webauthn_credentials', JSON.stringify({
       id: credentials.id,
