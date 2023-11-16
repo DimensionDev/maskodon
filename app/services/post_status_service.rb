@@ -88,7 +88,7 @@ class PostStatusService < BaseService
 
 
     Rails.logger.debug("PostStatusService ipfs update  deal  start")
-    IpfsDealService.new.call('status.created',@status)
+    IpfsService.new.call('status.created',@status)
     #@status.cid = IpfsPostService.new.ipfs_call(@status)
     Rails.logger.debug("PostStatusService ipfs update  deal  end")
     #@status.save!
@@ -256,7 +256,7 @@ class IpfsPostService
       Rails.logger.debug("upload_ipfs ipfs deal start")
 
       endpoint=ENV['IPFS_PIN_ENDPOINT']
-      str_jwt=ENV['IPFS_PINATA_KEY']
+      str_jwt=ENV['PINATA_KEY']
       file_name = "stastus_#{object.id}.json"
       str_json = object.to_json()
       uri = URI.parse(endpoint + "pinFileToIPFS")
