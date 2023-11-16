@@ -14,7 +14,7 @@ import { infuraProvider } from '@wagmi/core/providers/infura'
 import { createWeb3Modal, EIP6963Connector } from '@web3modal/wagmi'
 import axios from 'axios';
 import { throttle } from 'lodash';
-import { keccak256 } from 'viem'
+import { keccak256 } from 'viem';
 
 import { start } from '../mastodon/common';
 import { timeAgoString }  from '../mastodon/components/relative_timestamp';
@@ -249,39 +249,39 @@ function loaded() {
 
   listener(account)
   watchAccount(listener)
+
+  document.addEventListener('documentRequest', async (event) => {
+    const handle = async (type, requestArguments) => {
+      switch (type) {
+        case 'get_avatar':
+          const account = getAccount()
+          if (!account.isConnected) throw new Error('Not connected.')
+          return keccak256(account.address)
+        case 'sign_payload':
+            return signMessage({
+              message: requestArguments,
+            })
+
+        default:
+          throw new Error(`Unknown event type: ${type}`)
+      }
+    }
+
+    try {
+      document.dispatchEvent(new CustomEvent('documentResponse', {
+        detail: await handle(event.detail.type, event.detail.requestArguments)
+      }))
+    } catch (error) {
+      document.dispatchEvent(new CustomEvent('documentResponse', {
+        detail: {
+          reason: error instanceof Error ? error.message : 'Unknown Error',
+        }
+      }))
+    }
+  })
 }
 
-document.addEventListener('documentRequest', async (event) => {
-  const handle = (type, requestArguments) => {
-    switch (type) {
-      case 'get_avatar':
-        const account = getAccount()
-        if (!account.isConnected) throw new Error('Not connected.')
-        // FIXME: how to retrive avatar from an EVM address?
-        return keccak256(account)
-      case 'sign_payload':
-        {
-          return signMessage({
-            message: requestArguments,
-          })
-      }
-      default:
-        throw new Error(`Unknown event type: ${type}`)
-    }
-  }
 
-  try {
-    document.dispatchEvent(new CustomEvent('documentResponse', {
-      detail: await handle(event.detail.type, event.detail.requestArguments)
-    }))
-  } catch (error) {
-    document.dispatchEvent(new CustomEvent('documentResponse', {
-      detail: {
-        reason: error instanceof Error ? error.message : 'Unknown Error',
-      }
-    }))
-  }
-})
 
 delegate(document, '#edit_profile input[type=file]', 'change', ({ target }) => {
   const avatar = document.getElementById(target.id + '-preview');
