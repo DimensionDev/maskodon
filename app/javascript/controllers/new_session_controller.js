@@ -75,7 +75,20 @@ export default class extends Controller {
     function ok(response) {
       response.json().then((data) => {
         console.log("new-session#ok: data", data)
-        Credential.get(data);
+        if(data.errors) {
+          const message = data.errors.join(" ");
+          const messageContainer = document.getElementById('login-error')
+
+          if(messageContainer) {
+            messageContainer.replaceChildren(message)
+            messageContainer.style = "display: block"
+          }
+        } else {
+          Credential.get(data);
+        }
+
+      }).catch((error) => {
+        console.log(error)
       });
     }
 

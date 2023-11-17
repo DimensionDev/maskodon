@@ -15,6 +15,9 @@
                     ) do |form| %>
   <h1 class="title"><%= t('auth.sign_in.title', domain: site_hostname) %></h1>
   <p class="lead"><%= t('auth.sign_in.preamble_html') %></p>
+  <div class="flash-message alert" id="login-error" style="display: none">
+
+    </div>
   <div class="fields-group">
     <%= form.fields_for :account do |ff| %>
       <%= ff.text_field :passkey_label, autofocus: true, autocomplete: "username webauthn", placeholder: t('simple_form.labels.defaults.username'), required: true %>

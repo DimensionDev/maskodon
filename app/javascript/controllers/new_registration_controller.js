@@ -34,7 +34,7 @@ export default class extends Controller {
         if (data.create_options?.user) {
           Credential.create(data);
         } else if(data.errors && data.errors.length) {
-          const message = data.errors[0]
+          const message = data.errors.join(" ")
           const messageContainer = document.getElementById('registration-error')
           if(messageContainer) {
             messageContainer.replaceChildren(message)
