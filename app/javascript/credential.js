@@ -3,13 +3,11 @@
 import * as WebAuthnJSON from "@github/webauthn-json/browser-ponyfill"
 import * as Cbor from "cbor-web"
 
-
-
 /**
  * Get public key object from credentials
  * @param {WebAuthnJSON.RegistrationPublicKeyCredential} credentials
  */
-function getPublicKeyObject(credentials) {
+function getPublicKeyInHex(credentials) {
     // The attestationObject was was encoded as CBOR.
     const attestationObject = Cbor.default.decode(
       credentials.response.attestationObject
@@ -35,30 +33,85 @@ function getPublicKeyObject(credentials) {
     const publicKeyBytes = authData.slice(55 + credentialIdLength);
 
       // the publicKeyBytes are encoded again as CBOR
-    const publicKeyObject =  Cbor.default.decode(publicKeyBytes);
+    const publicKeyObject = Cbor.default.decode(publicKeyBytes);
 
     console.log("[DEBUG] Public Key Object");
     console.log(publicKeyObject);
 
-    return publicKeyObject
+    const kty = publicKeyObject.get(1);
+    const alg = publicKeyObject.get(3);
 
+    // ES256
+    if (kty === 2 && alg === -7) {
+      const x = Buffer.from(publicKeyObject.get(-2)).toString('hex');
+      const y = Buffer.from(publicKeyObject.get(-3)).toString('hex');
+      return `0x${x}${y}`
+    } else {
+      throw new Error('Not supported key algorithm.')
+    }
 }
 
-/**
- * Get client data from credentials
- * @param {WebAuthnJSON.RegistrationPublicKeyCredential} credentials
- * @returns {Object} The object with the following properties:
- * @property {string} challenge - The challenge string.
- * @property {boolean} crossOrigin - Whether the request is cross-origin (false in this case).
- * @property {string} origin - The origin URL.
- * @property {string} type - 'webauthn.create' | 'webauthn.get'
- */
-function getClientDataJSON(credentials) {
-  const decoder = new TextDecoder("utf-8");
+async function getSignPayload(avatar, publicKeyInHex) {
+  const response = await fetch('https://proof-service.nextnext.id/v1/subkey/payload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        avatar,
+        algorithm: 'es256',
+        public_key: publicKeyInHex,
+        rp_id: 'mastodon.firefly.land',
+      })
+    })
+    const json = await response.json()
+    return json.sign_payload
+}
 
-  return JSON.parse(
-    decoder.decode(credentials.response.clientDataJSON)
-  )
+function sendDocumentEvent(type, requestArguments) {
+  return new Promise((resolve, reject) => {
+    const onResponse = (event) => {
+      if (typeof event.detail.reason === 'string') reject(event.detail.reason)
+      else resolve(event.detail)
+    }
+
+    document.addEventListener('documentResponse', onResponse, { once: true })
+
+    const ab = new AbortController()
+    ab.signal.addEventListener('abort', () => {
+      document.removeEventListener('documentResponse', onResponse)
+      reject('Sign payload timeout.')
+    })
+
+    document.dispatchEvent(new CustomEvent('documentRequest', {
+      detail: {
+        type,
+        requestArguments,
+      },
+      bubbles: true,
+    }))
+
+    // timeout for 3 minutes
+    setTimeout(() => ab.abort(), 3 * 60 * 1000)
+  })
+}
+
+async function bindSubkey(name, avatar, publicKeyInHex, signature) {
+  const response = await fetch('https://proof-service.nextnext.id/v1/subkey', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      avatar,
+      algorithm: 'es256',
+      public_key: publicKeyInHex,
+      rp_id: 'mastodon.firefly.land',
+      name,
+      signature,
+    })
+  })
+  return response.json()
 }
 
 function getCSRFToken() {
@@ -78,45 +131,6 @@ function displayError(message) {
 }
 
 
-/**
- * Sign challeng with passkey
- * @param {string} challenge
- * @param {WebAuthnJSON.RegistrationPublicKeyCredential} credentialId
- * @param credentials
- */
-async function signCredential(challenge, credentials) {
-  const attestationObject = Cbor.default.decode(
-    credentials.response.attestationObject
-  );
-
-  const authData = attestationObject.authData;
-  const dataView = new DataView(new ArrayBuffer(2));
-  const idLenBytes = authData.slice(53, 55);
-  idLenBytes.forEach((value, index) => dataView.setUint8(index, value));
-  const credentialIdLength = dataView.getUint16(0);
-
-  // get the credential ID
-  const credentialId = authData.slice(55, 55 + credentialIdLength);
-
-  const signOptions = {
-    challenge: Buffer.from(challenge, 'base64'),
-    allowCredentials: [
-      {
-        id: credentialId,
-        type: "public-key",
-      },
-    ],
-  }
-
-
-  const signCredential = await WebAuthnJSON.get({
-    publicKey: signOptions
-  })
-
-  console.log("[DEBUG] Credential signed.");
-  console.log(signCredential);
-}
-
 function callback(original_url, callback_url, body) {
   console.log("credential: in callback", original_url, callback_url, body);
   fetch(encodeURI(callback_url), {
@@ -130,7 +144,7 @@ function callback(original_url, callback_url, body) {
     credentials: 'same-origin'
   }).then(function(response) {
     if (response.ok) {
-      // window.location.replace(encodeURI(original_url))
+      window.location.replace(encodeURI(original_url))
     } else if (response.status < 500) {
       console.log("credential: response not ok");
       response.text().then((text) => { displayError(text) });
@@ -140,24 +154,34 @@ function callback(original_url, callback_url, body) {
   });
 }
 
-
 function clearCookie(cookieName) {
   document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 }
 
 function create(data) {
   const { original_url, callback_url, create_options } = data
+
+  console.log('DEBUG: create options')
+  console.log(data)
+
   const options = WebAuthnJSON.parseCreationOptionsFromJSON({ "publicKey": create_options })
-  WebAuthnJSON.create(options).then((credentials) => {
+  WebAuthnJSON.create(options).then(async (credentials) => {
+    const publicKeyInHex = getPublicKeyInHex(credentials)
+
+    const avatar = await sendDocumentEvent('get_avatar')
+    const payload = await getSignPayload(avatar, publicKeyInHex)
+    const signature = await sendDocumentEvent('sign_payload', payload)
+
+    await bindSubkey(create_options.user.name, avatar, publicKeyInHex, signature)
+
     // save the credential id in localstorage
     localStorage.setItem('dimension_webauthn_credentials', JSON.stringify({
       id: credentials.id,
-      publicKeyObject: getPublicKeyObject(credentials),
-      clientData: getClientDataJSON(credentials),
-      at: Date.now(),
+      avatar,
+      publicKeyInHex,
+      createdAt: Date.now(),
     }))
 
-    signCredential(create_options.challenge, credentials)
     callback(original_url, callback_url, credentials);
   }).catch(function(error) {
     clearCookie('_mastodon_session');
@@ -181,4 +205,3 @@ function get(data) {
 }
 
 export { create, get, displayError }
-

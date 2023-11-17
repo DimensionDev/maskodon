@@ -13,7 +13,9 @@
   class: "simple_form new_user") do |form| %>
   <h1 class="title"><%= t('auth.sign_up.title', domain: site_hostname) %></h1>
   <p class="lead"><%= t('auth.sign_up.preamble') %></p>
+    <div class="flash-message alert" id="registration-error" style="display: none">
 
+    </div>
     <%= form.fields_for :account do |ff| %>
       <div class="fields-group">
         <div class="input with_label email optional user_email">

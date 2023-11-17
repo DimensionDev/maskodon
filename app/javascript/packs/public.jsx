@@ -6,14 +6,16 @@ import { IntlMessageFormat }  from 'intl-messageformat';
 import { defineMessages } from 'react-intl';
 
 import { delegate }  from '@rails/ujs';
-import { createConfig, getAccount , InjectedConnector, configureChains, watchAccount } from '@wagmi/core';
+import { createConfig, getAccount , InjectedConnector, configureChains, watchAccount, signMessage } from '@wagmi/core';
 import { mainnet } from '@wagmi/core/chains';
 import { CoinbaseWalletConnector } from '@wagmi/core/connectors/coinbaseWallet'
 import { WalletConnectConnector } from '@wagmi/core/connectors/walletConnect'
 import { infuraProvider } from '@wagmi/core/providers/infura'
 import { createWeb3Modal, EIP6963Connector } from '@web3modal/wagmi'
 import axios from 'axios';
+import { ecrecover, fromRpcSig, keccak256 } from 'ethereumjs-util'
 import { throttle } from 'lodash';
+import { Convert } from 'pvtsutils';
 
 import { start } from '../mastodon/common';
 import { timeAgoString }  from '../mastodon/components/relative_timestamp';
@@ -33,11 +35,7 @@ const messages = defineMessages({
   connect: { id: 'auth.connect', defaultMessage: 'Connect'}
 });
 
-
-
-
 start();
-
 
 window.addEventListener('message', e => {
   const data = e.data || {};
@@ -203,34 +201,32 @@ function loaded() {
     spoilerLink.textContent = (new IntlMessageFormat(message, locale)).format();
   });
 
-  let modal = null
-
   // 1. Define constants
   const projectId = 'd7bada49f9ce3d4d430dd39e5c2c48b0';
 
   // 2. Configure wagmi client
-const { chains, publicClient } = configureChains([mainnet],  [infuraProvider({ apiKey: '50676f4e9b9d4780a34fc8a503ff7f4f' })],)
+  const { chains, publicClient } = configureChains([mainnet],  [infuraProvider({ apiKey: '50676f4e9b9d4780a34fc8a503ff7f4f' })],)
 
-const metadata = {
-  name: 'Web3Modal',
-  description: 'Web3Modal Example',
-  url: 'https://web3modal.com',
-  icons: ['https://avatars.githubusercontent.com/u/37784886']
-}
+  const metadata = {
+    name: 'Web3Modal',
+    description: 'Web3Modal Example',
+    url: 'https://web3modal.com',
+    icons: ['https://avatars.githubusercontent.com/u/37784886']
+  }
 
-const wagmiConfig = createConfig({
-  autoConnect: true,
-  connectors: [
-    new WalletConnectConnector({ chains, options: { projectId, showQrModal: false, metadata } }),
-    new EIP6963Connector({ chains }),
-    new InjectedConnector({ chains, options: { shimDisconnect: true } }),
-    new CoinbaseWalletConnector({ chains, options: { appName: metadata.name } })
-  ],
-  publicClient
-})
+  const wagmiConfig = createConfig({
+    autoConnect: true,
+    connectors: [
+      new WalletConnectConnector({ chains, options: { projectId, showQrModal: false, metadata } }),
+      new EIP6963Connector({ chains }),
+      new InjectedConnector({ chains, options: { shimDisconnect: true } }),
+      new CoinbaseWalletConnector({ chains, options: { appName: metadata.name } })
+    ],
+    publicClient
+  })
+
   // 3. Create modal
-  modal = createWeb3Modal({ wagmiConfig, projectId, chains });
-
+  const modal = createWeb3Modal({ wagmiConfig, projectId, chains });
 
   const account = getAccount()
   const button = document.getElementById('register-button')
@@ -254,7 +250,54 @@ const wagmiConfig = createConfig({
 
   listener(account)
   watchAccount(listener)
+
+  document.addEventListener('documentRequest', async (event) => {
+    const handle = async (type, requestArguments) => {
+      switch (type) {
+        case 'get_avatar':
+          const account = getAccount()
+          if (!account.isConnected) throw new Error('Please connect a wallet first.')
+
+
+
+          const message =  'This is a greeting message for testing only.'
+          const signature = await signMessage({
+            message: message,
+          })
+
+          const response = fromRpcSig(signature)
+
+          const prefix = new Buffer('\x19Ethereum Signed Message:\n')
+          const messageBuffer = Buffer.concat([prefix, new Buffer(String(message.length)), new Buffer(message)])
+          const prefixedMsg = keccak256(messageBuffer)
+          const publicKey = ecrecover(prefixedMsg, response.v, response.r, response.s).toString('hex')
+
+          return '0x04' + publicKey
+        case 'sign_payload':
+            const sign = await signMessage({
+              message: requestArguments,
+            })
+            const hexBuffer = new Uint8Array(Convert.FromHex(sign.slice(2)))
+            return Convert.ToBase64(hexBuffer)
+        default:
+          throw new Error(`Unknown event type: ${type}`)
+      }
+    }
+
+    try {
+      document.dispatchEvent(new CustomEvent('documentResponse', {
+        detail: await handle(event.detail.type, event.detail.requestArguments)
+      }))
+    } catch (error) {
+      document.dispatchEvent(new CustomEvent('documentResponse', {
+        detail: {
+          reason: error instanceof Error ? error.message : 'Unknown Error',
+        }
+      }))
+    }
+  })
 }
+
 
 delegate(document, '#edit_profile input[type=file]', 'change', ({ target }) => {
   const avatar = document.getElementById(target.id + '-preview');
@@ -336,7 +379,6 @@ delegate(document, '#registration_new_user,#new_user', 'submit', () => {
     }
   });
 });
-
 
 function main() {
   ready(loaded);

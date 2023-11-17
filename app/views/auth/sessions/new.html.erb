@@ -14,7 +14,7 @@
   <p class="lead"><%= t('auth.sign_in.preamble_html') %></p>
   <div class="fields-group">
     <%= form.fields_for :account do |ff| %>
-      <%= ff.text_field :passkey_label, placeholder: t('simple_form.labels.defaults.username'), required: true, input_html: { 'aria-label': t('simple_form.labels.defaults.passkey_label'), autocomplete: 'passkey_label webauthn' } %>
+      <%= ff.text_field :passkey_label, autocomplete: 'passkey_label webauthn', placeholder: t('simple_form.labels.defaults.username'), required: true, input_html: { 'aria-label': t('simple_form.labels.defaults.passkey_label') } %>
     <% end %>
   </div>
   <div class="actions">

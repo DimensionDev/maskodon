@@ -30,18 +30,17 @@ export default class extends Controller {
 
     function ok(response) {
       response.json().then((data) => {
-        // console.log("new-registration data", data);
-        // const { callback_url, create_options } = data;
-        // console.log("new-registration callback_url", callback_url);
-        // console.log("new-registration create_options", create_options);
 
-        // if (create_options["user"]) {
-          // const xxx = encodeURI(callback_url);
-          // console.log("new-registration xxx", xxx)
-          // Credential.create(xxx, create_options);
-        if (data.create_options.user) {
+        if (data.create_options?.user) {
           Credential.create(data);
-        }                       // else ????
+        } else if(data.errors && data.errors.length) {
+          const message = data.errors[0]
+          const messageContainer = document.getElementById('registration-error')
+          if(messageContainer) {
+            messageContainer.replaceChildren(message)
+            messageContainer.style = "display: block"
+          }
+        }
       });
     }
 
