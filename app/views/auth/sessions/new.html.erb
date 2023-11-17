@@ -7,14 +7,17 @@
 <%= form_with( url: new_auth_session_pksignin_path(format: :json),
                     data: {
                       controller: "new-session",
-                      action: "new-session#submit"
+                      action: "new-session#submit",
+                      "challenge_url": new_auth_session_challenge_url
                     },
-                    class: "simple_form") do |form| %>
+                    class: "simple_form",
+                    id: "sign_in_form"
+                    ) do |form| %>
   <h1 class="title"><%= t('auth.sign_in.title', domain: site_hostname) %></h1>
   <p class="lead"><%= t('auth.sign_in.preamble_html') %></p>
   <div class="fields-group">
     <%= form.fields_for :account do |ff| %>
-      <%= ff.text_field :passkey_label, autocomplete: 'passkey_label webauthn', placeholder: t('simple_form.labels.defaults.username'), required: true, input_html: { 'aria-label': t('simple_form.labels.defaults.passkey_label') } %>
+      <%= ff.text_field :passkey_label, autofocus: true, autocomplete: "username webauthn", placeholder: t('simple_form.labels.defaults.username'), required: true %>
     <% end %>
   </div>
   <div class="actions">

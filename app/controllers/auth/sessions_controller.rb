@@ -6,7 +6,7 @@ class Auth::SessionsController < Devise::SessionsController
   # include Devise::Passkeys::Controllers::SessionsControllerConcern
   # include RelyingParty
 
-  skip_before_action :verify_authenticity_token, only: [:new_pksignin,:callback]
+  skip_before_action :verify_authenticity_token, only: [:new_pksignin,:callback,:new_challenge]
 
   skip_before_action :require_no_authentication, only: [:create]
   skip_before_action :require_functional!
@@ -66,6 +66,18 @@ class Auth::SessionsController < Devise::SessionsController
     end
   end
 
+  def new_challenge
+
+      get_options = WebAuthn::Credential.options_for_get(
+        allow: [],
+        user_verification: 'preferred'
+      )
+
+      respond_to do |format|
+        logger.debug { "respond with: #{get_options}" }
+        format.json { render json: get_options }
+      end
+  end
 
   def external_id(webauthn_credential)
     Base64.strict_encode64(webauthn_credential.raw_id)
