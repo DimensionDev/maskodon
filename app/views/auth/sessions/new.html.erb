@@ -20,7 +20,7 @@
     </div>
   <div class="fields-group">
     <%= form.fields_for :account do |ff| %>
-      <%= ff.text_field :passkey_label, autofocus: true, autocomplete: "username webauthn", placeholder: t('simple_form.labels.defaults.username'), required: true %>
+      <%= ff.text_field :passkey_label, autofocus: true, autocomplete: "[account][passkey_label] webauthn", placeholder: t('simple_form.labels.defaults.username'), required: true %>
     <% end %>
   </div>
   <div class="actions">

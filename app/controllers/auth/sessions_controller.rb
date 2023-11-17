@@ -73,9 +73,17 @@ class Auth::SessionsController < Devise::SessionsController
         user_verification: 'preferred'
       )
 
+      save_authentication('challenge' => get_options.challenge, 'public_key' => get_options.challenge)
+
+      hash = {
+        original_url: "/",
+        callback_url: new_auth_session_callback_path(format: :json),
+        get_options: get_options
+      }
+
       respond_to do |format|
-        logger.debug { "respond with: #{get_options}" }
-        format.json { render json: get_options }
+        logger.debug { "respond with: #{hash}" }
+        format.json { render json: hash }
       end
   end
 

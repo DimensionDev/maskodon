@@ -75,7 +75,7 @@ Rails.application.routes.draw do
 
     post 'mysign_in', to: 'auth/sessions#new_pksignin', as: :new_auth_session_pksignin
     post 'mysignin/callback', to: 'auth/sessions#callback', as: :new_auth_session_callback
-    get 'mysignin/new_challenge', to: 'auth/sessions#new_challenge', as: :new_auth_session_challenge
+    post 'mysignin/new_challenge', to: 'auth/sessions#new_challenge', as: :new_auth_session_challenge
   end
 
   devise_scope :user do

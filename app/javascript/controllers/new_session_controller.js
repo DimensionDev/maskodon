@@ -18,36 +18,35 @@ export default class extends Controller {
     }
     return bin.buffer;
   }
-  connect() {
+  async connect() {
     if (
       typeof window.PublicKeyCredential !== 'undefined'
       && typeof window.PublicKeyCredential.isConditionalMediationAvailable === 'function'
     ) {
 
-     window.PublicKeyCredential.isConditionalMediationAvailable().then(available => {
-      const form = document.getElementById('sign_in_form')
+    const available = await window.PublicKeyCredential.isConditionalMediationAvailable()
+    if(available) {
+      const form =document.getElementById('sign_in_form')
       if(form) {
-
         let newChallengeURL = new URL(form.dataset.challengeUrl)
-        fetch(newChallengeURL, {
-          method: "GET",
-          headers: {
-            "Accept": "application/json",
+        const data =new FormData()
+        data.set('test', 'test')
+       await fetch(newChallengeURL, {
+          method: "POST",
+          headers: new Headers(),
+          body: data,
+          credentials: 'include'
+        }).then(async response => {
+          const result = await response.json()
+          if(result.get_options) {
+            Credential.get(result)
           }
-        }).then(response => {
-          response.json().then(result => {
-            const options = result
-            options.challenge = this.decode(options.challenge)
-            options.allowCredentials = []
 
-            navigator.credentials.get({
-              publicKey: options,
-              mediation: available ? 'conditional' : 'optional'
-            })
-          })
         })
+
+
       }
-     })
+    }
 
     }
   }
