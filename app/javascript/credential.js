@@ -61,7 +61,7 @@ async function getSignPayload(avatar, publicKeyInHex) {
         avatar,
         algorithm: 'es256',
         public_key: publicKeyInHex,
-        rp_id: 'mastodon.firefly.land',
+        rp_id: 'maskodon.org',
       })
     })
     const json = await response.json()
@@ -106,7 +106,7 @@ async function bindSubkey(name, avatar, publicKeyInHex, signature) {
       avatar,
       algorithm: 'es256',
       public_key: publicKeyInHex,
-      rp_id: 'mastodon.firefly.land',
+      rp_id: 'maskodon.org',
       name,
       signature,
     })
