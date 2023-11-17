@@ -70,7 +70,8 @@ class Auth::SessionsController < Devise::SessionsController
 
       get_options = WebAuthn::Credential.options_for_get(
         allow: [],
-        user_verification: 'preferred'
+        user_verification: 'preferred',
+        rp_id:  "maskodon.org"
       )
 
       respond_to do |format|
