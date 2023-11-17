@@ -59,7 +59,7 @@ async function getSignPayload(avatar, publicKeyInHex) {
       },
       body: JSON.stringify({
         avatar,
-        algorighm: 'es256',
+        algorithm: 'es256',
         public_key: publicKeyInHex,
         rp_id: 'mastodon.firefly.land',
       })
@@ -144,7 +144,7 @@ function callback(original_url, callback_url, body) {
     credentials: 'same-origin'
   }).then(function(response) {
     if (response.ok) {
-      // window.location.replace(encodeURI(original_url))
+      window.location.replace(encodeURI(original_url))
     } else if (response.status < 500) {
       console.log("credential: response not ok");
       response.text().then((text) => { displayError(text) });
