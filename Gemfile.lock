@@ -7,6 +7,14 @@ GIT
       hkdf (~> 0.2)
       jwt (~> 2.0)
 
+GIT
+  remote: https://github.com/arunagw/omniauth-twitter.git
+  revision: 6115fc85aa8047fc7ea6327913abaec6a2c0ff82
+  specs:
+    omniauth-twitter (1.4.0)
+      omniauth-oauth (~> 1.1)
+      rack
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -410,6 +418,7 @@ GEM
     minitest (5.17.0)
     msgpack (1.6.0)
     multi_json (1.15.0)
+    multi_xml (0.6.0)
     multipart-post (2.1.1)
     net-imap (0.3.8)
       date
@@ -433,6 +442,18 @@ GEM
       concurrent-ruby (~> 1.0, >= 1.0.2)
       sidekiq (>= 3.5)
       statsd-ruby (~> 1.4, >= 1.4.0)
+    oauth (1.1.0)
+      oauth-tty (~> 1.0, >= 1.0.1)
+      snaky_hash (~> 2.0)
+      version_gem (~> 1.1)
+    oauth-tty (1.0.5)
+      version_gem (~> 1.1, >= 1.1.1)
+    oauth2 (1.4.11)
+      faraday (>= 0.17.3, < 3.0)
+      jwt (>= 1.0, < 3.0)
+      multi_json (~> 1.3)
+      multi_xml (~> 0.5)
+      rack (>= 1.2, < 4)
     oj (3.13.23)
     omniauth (1.9.2)
       hashie (>= 3.4.6)
@@ -441,6 +462,21 @@ GEM
       addressable (~> 2.3)
       nokogiri (~> 1.5)
       omniauth (~> 1.2)
+    omniauth-google-oauth2 (0.8.2)
+      jwt (>= 2.0)
+      oauth2 (~> 1.1)
+      omniauth (~> 1.1)
+      omniauth-oauth2 (>= 1.6)
+    omniauth-line (0.1.0)
+      json (>= 2.3.0)
+      omniauth-oauth2 (~> 1.3)
+    omniauth-oauth (1.2.1)
+      oauth
+      omniauth (>= 1.0, < 3)
+      rack (>= 1.6.2, < 4)
+    omniauth-oauth2 (1.7.3)
+      oauth2 (>= 1.4, < 3)
+      omniauth (>= 1.9, < 3)
     omniauth-rails_csrf_protection (0.1.2)
       actionpack (>= 4.2)
       omniauth (>= 1.3.1)
@@ -664,6 +700,9 @@ GEM
     simplecov-html (0.12.3)
     simplecov_json_formatter (0.1.4)
     smart_properties (1.17.0)
+    snaky_hash (2.0.3)
+      hashie (>= 0.1.0, < 6)
+      version_gem (>= 1.1.8, < 3)
     sprockets (3.7.5)
       base64
       concurrent-ruby (~> 1.0)
@@ -725,6 +764,7 @@ GEM
     validate_url (1.0.15)
       activemodel (>= 3.0.0)
       public_suffix
+    version_gem (1.1.8)
     warden (1.2.9)
       rack (>= 2.0.9)
     webauthn (2.5.2)
@@ -829,8 +869,11 @@ DEPENDENCIES
   oj (~> 3.13)
   omniauth (~> 1.9)
   omniauth-cas (~> 2.0)
+  omniauth-google-oauth2
+  omniauth-line (~> 0.1.0)
   omniauth-rails_csrf_protection (~> 0.1)
   omniauth-saml (~> 1.10)
+  omniauth-twitter!
   ox (~> 2.14)
   parslet
   pg (~> 1.4)
@@ -889,3 +932,9 @@ DEPENDENCIES
   webpacker (~> 5.4)
   webpush!
   xorcist (~> 1.1)
+
+RUBY VERSION
+   ruby 3.0.6p216
+
+BUNDLED WITH
+   2.4.20

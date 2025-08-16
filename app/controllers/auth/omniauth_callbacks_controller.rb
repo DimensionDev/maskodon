@@ -5,7 +5,34 @@ class Auth::OmniauthCallbacksController < Devise::OmniauthCallbacksController
 
   def self.provides_callback_for(provider)
     define_method provider do
-      @user = User.find_for_omniauth(request.env['omniauth.auth'], current_user)
+      # | =identity= | =current_user= | Action                          |
+      # |------------+-----------------+---------------------------------|
+      # | Exist      | Exist           | Report error                     |
+      # | Exist      | Absence         | Login                           |
+      # | Absence    | Exist           | Bind                            |
+      # | Absence    | Absence         | Register or login (depend on ENV) |
+      auth = request.env['omniauth.auth']
+      if ENV['OAUTH_DISABLE_AUTO_REGISTER'] == 'true'
+        uid = auth.uid
+        uid = (uid[0][:uid] || uid[0][:user]) if uid.is_a? Hashie::Array
+        identity = Identity.find_or_create_by(provider: provider, uid: uid)
+        @user = identity&.user
+        if @user.blank? # Identity is fresh: just created, no user binded yet
+          if current_user.present?
+            @user = current_user
+            identity.user = @user
+            identity.save!
+          else
+            identity.destroy!
+            if is_navigational_format?
+              flash[:alert] = I18n.t('settings.identities.cannot_login_without_register')
+            end
+            return redirect_to new_user_session_url
+          end
+        end
+      else
+        @user = User.find_for_omniauth(auth, current_user)
+      end
 
       if @user.persisted?
         LoginActivity.create(
@@ -18,10 +45,11 @@ class Auth::OmniauthCallbacksController < Devise::OmniauthCallbacksController
         )
 
         sign_in_and_redirect @user, event: :authentication
-        label = Devise.omniauth_configs[provider]&.strategy&.display_name.presence || I18n.t("auth.providers.#{provider}", default: provider.to_s.chomp('_oauth2').capitalize)
+        label = Devise.omniauth_configs[provider]&.strategy&.display_name.presence || I18n.t("auth.providers.#{provider}",
+                                                                                             default: provider.to_s.chomp('_oauth2').capitalize)
         set_flash_message(:notice, :success, kind: label) if is_navigational_format?
       else
-        session["devise.#{provider}_data"] = request.env['omniauth.auth']
+        session["devise.#{provider}_data"] = auth
         redirect_to new_user_registration_url
       end
     rescue ActiveRecord::RecordInvalid

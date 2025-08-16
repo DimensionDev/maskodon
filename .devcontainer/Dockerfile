@@ -3,7 +3,7 @@ ARG VARIANT=3.1-bullseye
 FROM mcr.microsoft.com/vscode/devcontainers/ruby:${VARIANT}
 
 # Install Rails
-# RUN gem install rails webdrivers
+RUN gem install ruby-lsp webdrivers
 
 # Default value to allow debug server to serve content over GitHub Codespace's port forwarding service
 # The value is a comma-separated list of allowed domains
