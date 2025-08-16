@@ -43,6 +43,11 @@ gem 'omniauth-saml', '~> 2.0'
 gem 'omniauth_openid_connect', '~> 0.6.1'
 gem 'omniauth', '~> 2.0'
 gem 'omniauth-rails_csrf_protection', '~> 1.0'
+gem 'omniauth-twitter', github: 'arunagw/omniauth-twitter'
+gem 'omniauth-line', '~> 0.1.0'
+
+# OAuth2 login
+gem 'omniauth-google-oauth2'
 
 gem 'color_diff', '~> 0.1'
 gem 'discard', '~> 1.2'

@@ -107,4 +107,25 @@ Devise.setup do |config|
     oidc_options[:security][:assume_email_is_verified] = ENV['OIDC_SECURITY_ASSUME_EMAIL_IS_VERIFIED'] == 'true' #OPTIONAL
     config.omniauth :openid_connect, oidc_options
   end
+
+  if ENV['OAUTH_GOOGLE_ENABLED'] == 'true'
+    options = {
+      scope: 'profile',
+      prompt: 'select_account',
+      image_aspect_ratio: 'square',
+      image_size: 200,
+    }
+    config.omniauth :google_oauth2, ENV['OAUTH_GOOGLE_CLIENT_ID'], ENV['OAUTH_GOOGLE_CLIENT_SECRET'], options
+  end
+
+  if ENV['OAUTH_TWITTER_ENABLED'] == 'true'
+    options = {
+      secure_image_url: true,
+      x_auth_access_type: 'read',
+      use_authorize: true,
+    }
+    config.omniauth :twitter, ENV['OAUTH_TWITTER_API_KEY'], ENV['OAUTH_TWITTER_API_SECRET'], options
+  end
+
+  config.omniauth :line, ENV['OAUTH_LINE_CHANNEL_ID'], ENV['OAUTH_LINE_CHANNEL_SECRET'] if ENV['OAUTH_LINE_ENABLED'] == 'true'
 end
