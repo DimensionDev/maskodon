@@ -44,6 +44,9 @@ gem 'gitlab-omniauth-openid-connect', '~>0.10.1', require: 'omniauth_openid_conn
 gem 'omniauth', '~> 1.9'
 gem 'omniauth-rails_csrf_protection', '~> 0.1'
 
+# OAuth2 login
+gem 'omniauth-google-oauth2'
+
 gem 'color_diff', '~> 0.1'
 gem 'discard', '~> 1.2'
 gem 'doorkeeper', '~> 5.6'

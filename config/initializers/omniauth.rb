@@ -101,4 +101,14 @@ Devise.setup do |config|
     oidc_options[:security][:assume_email_is_verified] = ENV['OIDC_SECURITY_ASSUME_EMAIL_IS_VERIFIED'] == 'true' #OPTIONAL
     config.omniauth :openid_connect, oidc_options
   end
+
+  if ENV['OAUTH_GOOGLE_ENABLED'] == 'true'
+    options = {
+      scope: 'email, profile, http://gdata.youtube.com',
+      prompt: 'select_account',
+      image_aspect_ratio: 'square',
+      image_size: 200
+    }
+    config.omniauth :google_oauth2, ENV['OAUTH_GOOGLE_CLIENT_ID'], ENV['OAUTH_GOOGLE_CLIENT_SECRET'], options
+  end
 end
