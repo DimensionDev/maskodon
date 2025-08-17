@@ -1466,6 +1466,7 @@ zh-CN:
       confirm_unlink: 确定要解除这个 OAuth 绑定吗？
       oauth_binding_removed: OAuth 绑定已解除
       oauth_binding_remove_failed: 解除 OAuth 绑定失败
+      cannot_login_without_register: 你不能使用这个账号登录，因为你还没有注册。
       platforms:
         google_oauth2: Google
     import: 导入

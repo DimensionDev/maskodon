@@ -1466,6 +1466,7 @@ ja:
       confirm_unlink: この OAuth 連携を解除してもよろしいですか？
       oauth_binding_removed: OAuth 連携を解除しました
       oauth_binding_remove_failed: OAuth 連携の解除に失敗しました
+      cannot_login_without_register: このアカウントにはログインできません。まだ登録されていないからです。
       platforms:
         google_oauth2: Google
     import: データのインポート
