@@ -21,6 +21,7 @@ class Auth::OmniauthCallbacksController < Devise::OmniauthCallbacksController
           if current_user.present?
             @user = current_user
             identity.user = @user
+            identity.save!
           else
             identity.destroy!
             if is_navigational_format?

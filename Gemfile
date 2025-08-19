@@ -162,3 +162,7 @@ gem 'connection_pool', require: false
 gem 'xorcist', '~> 1.1'
 gem 'cocoon', '~> 1.2'
 gem 'mail', '~> 2.8'
+
+gem "omniauth-twitter", "~> 1.4"
+
+gem "omniauth-line", "~> 0.1.0"

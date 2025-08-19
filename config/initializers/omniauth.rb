@@ -111,4 +111,15 @@ Devise.setup do |config|
     }
     config.omniauth :google_oauth2, ENV['OAUTH_GOOGLE_CLIENT_ID'], ENV['OAUTH_GOOGLE_CLIENT_SECRET'], options
   end
+
+  if ENV['OAUTH_TWITTER_ENABLED'] == 'true'
+    options = {
+      secure_image_url: true,
+    }
+    config.omniauth :twitter, ENV['OAUTH_TWITTER_CLIENT_ID'], ENV['OAUTH_TWITTER_CLIENT_SECRET'], options
+  end
+
+  if ENV['OAUTH_LINE_ENABLED'] == 'true'
+    config.omniauth :line, ENV['OAUTH_LINE_CHANNEL_ID'], ENV['OAUTH_LINE_CHANNEL_SECRET']
+  end
 end
