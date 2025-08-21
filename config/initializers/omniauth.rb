@@ -104,7 +104,7 @@ Devise.setup do |config|
 
   if ENV['OAUTH_GOOGLE_ENABLED'] == 'true'
     options = {
-      scope: 'email, profile, http://gdata.youtube.com',
+      scope: 'profile',
       prompt: 'select_account',
       image_aspect_ratio: 'square',
       image_size: 200
@@ -115,8 +115,10 @@ Devise.setup do |config|
   if ENV['OAUTH_TWITTER_ENABLED'] == 'true'
     options = {
       secure_image_url: true,
+      x_auth_access_type: 'read',
+      use_authorize: true,
     }
-    config.omniauth :twitter, ENV['OAUTH_TWITTER_CLIENT_ID'], ENV['OAUTH_TWITTER_CLIENT_SECRET'], options
+    config.omniauth :twitter, ENV['OAUTH_TWITTER_API_KEY'], ENV['OAUTH_TWITTER_API_SECRET'], options
   end
 
   if ENV['OAUTH_LINE_ENABLED'] == 'true'
