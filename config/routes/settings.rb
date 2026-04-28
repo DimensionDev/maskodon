@@ -73,4 +73,5 @@ namespace :settings do
   resources :sessions, only: [:destroy]
   resources :featured_tags, only: [:index, :create, :destroy]
   resources :login_activities, only: [:index]
+  resources :identities, only: [:index, :destroy], path: 'oauth_login'
 end
