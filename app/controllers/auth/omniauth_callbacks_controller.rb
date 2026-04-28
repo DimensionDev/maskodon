@@ -7,14 +7,39 @@ class Auth::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   def self.provides_callback_for(provider)
     define_method provider do
       @provider = provider
-      @user = User.find_for_omniauth(request.env['omniauth.auth'], current_user)
+      # | =identity= | =current_user= | Action                          |
+      # |------------+-----------------+---------------------------------|
+      # | Exist      | Exist           | Report error                     |
+      # | Exist      | Absence         | Login                           |
+      # | Absence    | Exist           | Bind                            |
+      # | Absence    | Absence         | Register or login (depend on ENV) |
+      auth = request.env['omniauth.auth']
+      if ENV['OAUTH_DISABLE_AUTO_REGISTER'] == 'true'
+        uid = auth.uid
+        uid = uid[0][:uid] || uid[0][:user] if uid.is_a? Hashie::Array
+        identity = Identity.find_or_create_by(provider: provider, uid: uid)
+        @user = identity&.user
+        if @user.blank? # Identity is fresh: just created, no user binded yet
+          if current_user.present?
+            @user = current_user
+            identity.user = @user
+            identity.save!
+          else
+            identity.destroy!
+            flash[:alert] = I18n.t('settings.identities.cannot_login_without_register') if is_navigational_format?
+            return redirect_to new_user_session_url
+          end
+        end
+      else
+        @user = User.find_for_omniauth(auth, current_user)
+      end
 
       if @user.persisted?
         record_login_activity
         sign_in_and_redirect @user, event: :authentication
         set_flash_message(:notice, :success, kind: label_for_provider) if is_navigational_format?
       else
-        session["devise.#{provider}_data"] = request.env['omniauth.auth']
+        session["devise.#{provider}_data"] = auth
         redirect_to new_user_registration_url
       end
     rescue ActiveRecord::RecordInvalid
