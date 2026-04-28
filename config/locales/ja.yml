@@ -1809,6 +1809,21 @@ ja:
     edit_profile: プロフィールを編集
     export: エクスポート
     featured_tags: 注目のハッシュタグ
+    identities:
+      action: アクション
+      cannot_login_without_register: このアカウントにはログインできません。まだ登録されていないからです。
+      confirm_unlink: この OAuth 連携を解除してもよろしいですか？
+      link: 連携
+      menu_title: OAuth ログイン
+      not_binded: "(未連携)"
+      oauth_binding_remove_failed: OAuth 連携の解除に失敗しました
+      oauth_binding_removed: OAuth 連携を解除しました
+      platforms:
+        google_oauth2: Google
+      provider: プロバイダー
+      title: OAuth 連携管理
+      uid: UID
+      unlink: 連携解除
     import: データのインポート
     import_and_export: インポート・エクスポート
     migrate: アカウントの引っ越し

@@ -2025,6 +2025,21 @@ zh-CN:
     edit_profile: 更改个人资料
     export: 导出
     featured_tags: 精选话题
+    identities:
+      action: 操作
+      cannot_login_without_register: 你不能使用这个账号登录，因为你还没有注册。
+      confirm_unlink: 确定要解除这个 OAuth 绑定吗？
+      link: 绑定
+      menu_title: OAuth 登录
+      not_binded: "(未绑定)"
+      oauth_binding_remove_failed: 解除 OAuth 绑定失败
+      oauth_binding_removed: OAuth 绑定已解除
+      platforms:
+        google_oauth2: Google
+      provider: 提供商
+      title: OAuth 绑定管理
+      uid: UID
+      unlink: 解绑
     import: 导入
     import_and_export: 导入与导出
     migrate: 账号迁移

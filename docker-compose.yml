@@ -6,7 +6,10 @@ services:
     restart: always
     image: postgres:14-alpine
     shm_size: 256mb
+    ports:
+      - '127.0.0.1:5432:5432'
     networks:
+      - external_network
       - internal_network
     healthcheck:
       test: ['CMD', 'pg_isready', '-U', 'postgres']
@@ -19,7 +22,10 @@ services:
     restart: always
     image: redis:7-alpine
     networks:
+      - external_network
       - internal_network
+    ports:
+      - '127.0.0.1:6379:6379'
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
     volumes:
@@ -60,7 +66,7 @@ services:
   web:
     # You can uncomment the following line if you want to not use the prebuilt image, for example if you have local code changes
     # build: .
-    image: ghcr.io/mastodon/mastodon:v4.6.6
+    image: ghcr.io/dimensiondev/maskodon:v4.6.6-oauth
     restart: always
     env_file: .env.production
     command: bundle exec puma -C config/puma.rb
@@ -71,7 +77,7 @@ services:
       # prettier-ignore
       test: ['CMD-SHELL',"curl -s --noproxy localhost localhost:3000/health | grep -q 'OK' || exit 1"]
     ports:
-      - '127.0.0.1:3000:3000'
+      - '3000:3000'
     depends_on:
       - db
       - redis
@@ -84,7 +90,7 @@ services:
     # build:
     #   dockerfile: ./streaming/Dockerfile
     #   context: .
-    image: ghcr.io/mastodon/mastodon-streaming:v4.6.6
+    image: ghcr.io/dimensiondev/maskodon-streaming:v4.6.6-oauth
     restart: always
     env_file: .env.production
     command: node ./streaming/index.js
@@ -103,7 +109,7 @@ services:
   sidekiq:
     # You can uncomment the following line if you want to not use the prebuilt image, for example if you have local code changes
     # build: .
-    image: ghcr.io/mastodon/mastodon:v4.6.6
+    image: ghcr.io/dimensiondev/maskodon:v4.6.6-oauth
     restart: always
     env_file: .env.production
     command: bundle exec sidekiq

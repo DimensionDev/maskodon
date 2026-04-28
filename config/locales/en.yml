@@ -2071,6 +2071,21 @@ en:
     edit_profile: Edit profile
     export: Export
     featured_tags: Featured hashtags
+    identities:
+      action: Action
+      cannot_login_without_register: You cannot login with this account because you have not registered yet.
+      confirm_unlink: Are you sure you want to unlink this OAuth binding?
+      link: Link
+      menu_title: OAuth Login
+      not_binded: "(Not binded)"
+      oauth_binding_remove_failed: Failed to remove OAuth binding
+      oauth_binding_removed: OAuth binding removed
+      platforms:
+        google_oauth2: Google
+      provider: Provider
+      title: OAuth Binding Management
+      uid: UID
+      unlink: Unlink
     import: Import
     import_and_export: Import and export
     migrate: Account migration
