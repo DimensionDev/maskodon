@@ -1,0 +1,23 @@
+- content_for :page_title do
+  = t('settings.identities.title')
+
+%table.table
+  %thead
+    %tr
+      %th= t('settings.identities.provider')
+      %th= t('settings.identities.uid')
+      %th= t('settings.identities.action')
+  %tbody
+    - @all_providers.each do |provider, identity|
+      %tr
+        %td= t("settings.identities.platforms.#{provider}")
+
+        - if identity.present?
+          %td= identity.uid
+        - else
+          %td= t('settings.identities.not_binded')
+
+        - if identity.blank?
+          %td= link_to t('settings.identities.link'), omniauth_authorize_path(:user, provider), method: :post
+        - else
+          %td= link_to t('settings.identities.unlink'), settings_identity_path(identity), method: :delete, data: { confirm: t('settings.identities.confirm_unlink') }
