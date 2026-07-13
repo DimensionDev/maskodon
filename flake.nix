@@ -1,7 +1,7 @@
 {
   description = "A Nix-flake-based Ruby development environment";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/2e7b72c52f89a7b66130fd81a3b31250596cbacd";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
   outputs = { self, nixpkgs }:
     let
@@ -14,7 +14,7 @@
       devShells = forEachSupportedSystem ({ pkgs }: {
         default = pkgs.mkShell {
           packages = with pkgs; [
-            ruby_3_0
+            ruby_3_4
             bundler
             postgresql
 
@@ -22,9 +22,10 @@
             libidn
             zlib
             openssl
+            libyaml
 
-            nodejs_20
-            yarn
+            nodejs_24
+            yarn-berry
           ];
         };
       });
